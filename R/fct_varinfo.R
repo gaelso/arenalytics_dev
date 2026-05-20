@@ -129,7 +129,7 @@ fct_varinfo <- function(.zip, .entity){
   if (!"hiddenInAnalyticalDashboard" %in% names(schema)) schema$hiddenInAnalyticalDashboard <- FALSE
 
   ## Filter: vars that are set as hidden for the analytical dashboard
-  hiddenvars <- schema |> dplyr::filter(.data$hiddenInAnalyticalDashboard) |> dplyr::pull("name")
+  hiddenvars <- schema |> dplyr::filter(as.logical(.data$hiddenInAnalyticalDashboard)) |> dplyr::pull("name")
 
   wt_names <- wt_names |>
     dplyr::filter(
