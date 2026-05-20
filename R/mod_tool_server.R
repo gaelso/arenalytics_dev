@@ -163,6 +163,7 @@ mod_tool_server <- function(id, rv) {
     })
 
     observeEvent(input$analysis_mode, {
+      shinyjs::toggle("analysis_entity", condition = !identical(input$analysis_mode, "area"))
       shinyjs::disable("btn_run_analysis")
     })
 
