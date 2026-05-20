@@ -109,4 +109,23 @@
 # }) |>
 #   purrr::list_rbind()
 
-
+## Note on git configuration
+## - main repo: https://github.com/openforis/arenalytics
+## - On Github: fork then change name to 'arenalytics_dev': https://github.com/gaelso/arenalytics.dev
+## - In Rstudio: Create Rstudio project with fork
+## - In Rstudio: Git tab > New Branch, call it 'dev'
+## - Setup upstream: git remote add upstream https://github.com/openforis/arenalytics
+## - Before each session: git fetch upstream
+## - If changes:
+## git checkout master
+## git pull upstream master
+## git push                 # updates your fork's master
+## git checkout dev
+## git merge master         # brings changes into dev
+## git push
+## - Finally push changes from branch to origin
+## git checkout master
+## git merge dev
+## git push                 # updates fork's master
+## git push upstream master # pushes to org
+## git checkout dev         # back to work
