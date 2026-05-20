@@ -1,0 +1,98 @@
+---
+format:
+  html:
+    embed-resources: true
+    toc: false
+    page-layout: full
+  docx:
+    toc: false
+params:
+  survey_label: "Survey"
+  report_author: ""
+  survey_code: ""
+  cycle_number: ""
+  sampling_strategy: ""
+  stratification_attribute: ""
+  clustering: ""
+  clustering_attribute: ""
+  nonresponse_correction: "Unknown"
+  analysis_entity: ""
+  analysis_type: ""
+  base_unit_dimensions: "None"
+  sub_unit_dimensions: "None"
+  measure_label: ""
+  confidence_level: "0.95"
+  filters_applied: "None"
+  table_title: "Analysis table"
+  table_csv: ""
+  means_plot: ""
+  totals_plot: ""
+  has_means_plot: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+
+```{r}
+table_df <- utils::read.csv(params$table_csv, check.names = FALSE)
+numeric_cols <- names(table_df)[vapply(table_df, is.numeric, logical(1))]
+if (length(numeric_cols) > 0) {
+  table_df[numeric_cols] <- lapply(table_df[numeric_cols], function(x) round(x, 2))
+}
+```
+
+# `r params$survey_label`
+
+## Open Foris Arena results
+
+`r params$report_author`
+
+## Survey highlights
+
+**Survey code:** `r params$survey_code`  
+**Cycle number:** `r params$cycle_number`  
+**Sampling strategy code:** `r params$sampling_strategy`   
+**Stratification attribute:** `r params$stratification_attribute`  
+**Clustering:** `r params$clustering`  
+**Clustering attribute:** `r params$clustering_attribute`  
+**Non-response bias correction:** `r params$nonresponse_correction`  
+
+---
+
+## Analysis summary
+
+`r if (!identical(params$analysis_type, "Area")) paste0("**Entity:** ", params$analysis_entity, "  ")`  
+**Analysis type:** `r params$analysis_type`  
+**Base-unit dimensions:** `r params$base_unit_dimensions`  
+`r if (!identical(params$analysis_type, "Area")) paste0("**Sub-unit dimensions:** ", params$sub_unit_dimensions, " ")`  
+`r if (!identical(params$analysis_type, "Area")) paste0("**Measure selected:** ", params$measure_label, "  ")`  
+**Confidence level:** `r params$confidence_level`  
+**Filters applied:**
+`r gsub("; ", "  \n", params$filters_applied)`
+
+{{< pagebreak >}}
+
+## Figures
+
+```{r}
+if (isTRUE(params$has_means_plot) && nzchar(params$means_plot)) {
+  knitr::include_graphics(params$means_plot)
+}
+```
+
+```{r}
+knitr::include_graphics(params$totals_plot)
+```
+
+{{< pagebreak >}}
+
+::: {.landscape}
+
+## Table
+
+```{r}
+knitr::kable(table_df, format = "pipe")
+```
+:::

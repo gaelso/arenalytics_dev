@@ -9,7 +9,6 @@ mod_tool_UI <- function(id, i18n, .tr){
   ns <- NS(id)
 
 
-
   ##
   ## UI Elements ######
   ##
@@ -90,28 +89,27 @@ mod_tool_UI <- function(id, i18n, .tr){
   )
 
 
-  ## . + Acc2: Insights --------
-  ac2 <-  accordion_panel(
-    title = "Get insights",
-    icon = bsicons::bs_icon("2-circle"),
-    value = ns("ac2"),
+  ## $$$
+  ## . + Acc2: Insights — REMOVED (entity/variable selection moved into Insights panel)
+  ## ac2 <-  accordion_panel(
+  ##   title = "Get insights",
+  ##   icon = bsicons::bs_icon("2-circle"),
+  ##   value = ns("ac2"),
+  ##   div(
+  ##     id = ns("msg_tmp"),
+  ##     p("Under construction"),
+  ##     class = "text-warning",
+  ##     style = "font-style: italic;"
+  ##   ),
+  ##   div(
+  ##     id = ns("insight_filters"),
+  ##     uiOutput(outputId = ns("insight_entity")),
+  ##     uiOutput(outputId = ns("insight_vars"))
+  ##   )
+  ## )
+  ## $$$
 
-    ## Content
-    div(
-      id = ns("msg_tmp"),
-      p("Under construction"),
-      class = "text-warning",
-      style = "font-style: italic;"
-    ),
-
-    div(
-      id = ns("insight_filters"),
-      uiOutput(outputId = ns("insight_entity")),
-      uiOutput(outputId = ns("insight_vars"))
-    )
-  )
-
-  ## . + Accordion 3 -------------------------------------------
+  ## . + Acc3: Analysis of measures across selected dimensions -----------------
   ac3 <-  accordion_panel(
     title = "Run analysis",
     icon = bsicons::bs_icon("3-circle"),
@@ -122,6 +120,14 @@ mod_tool_UI <- function(id, i18n, .tr){
     ## h4("coming soon"),
 
     ## Entity selector (populated after data loads)
+    radioButtons(
+      inputId = ns("analysis_mode"),
+      label   = strong("Analysis type"),
+      choices = c("Area" = "area", "Other measures" = "other"),
+      selected = "other",
+      inline = TRUE
+    ),
+
     uiOutput(ns("analysis_entity")),
 
     ## Grouped dimension selector (populated after entity is chosen)
@@ -129,6 +135,49 @@ mod_tool_UI <- function(id, i18n, .tr){
 
     ## Stratum auto-include note (only when sampling design requires it)
     uiOutput(ns("analysis_strat_text")),
+
+    ## Warning when more than 4 dimensions are selected
+    uiOutput(ns("analysis_too_many_dims")),
+
+    ## Lonely-PSU strategy
+    shinyWidgets::radioGroupButtons(
+      inputId  = ns("analysis_lonely_psu"),
+      label    = strong("Lonely PSU handling"),
+      choices  = c("Adjust (conservative)" = "adjust",
+                   "Remove (permissive)"   = "remove"),
+      selected = "adjust",
+      size     = "xs",
+      justified = TRUE
+    ),
+
+    ## ++ ##
+    shinyWidgets::radioGroupButtons(
+      inputId  = ns("analysis_compute_mode"),
+      label    = strong("Computation mode"),
+      choices  = c("Fast" = "fast",
+                   "Safe" = "safe"),
+      selected = "fast",
+      size     = "xs",
+      justified = TRUE
+    ),
+    div(
+      class = "text-info",
+      style = "font-size: 0.85em; font-style: italic; margin-top: 0.25rem;",
+      bsicons::bs_icon("info-circle"),
+      " Fast computes all measures together. Safe is slower, but keeps going when some measures fail."
+    ),
+    ## ++ ##
+
+    ## Confidence level
+    div(
+      class = "pvalue-select-wrap",
+      selectInput(
+        inputId  = ns("analysis_p_value"),
+        label    = strong("Confidence level"),
+        choices  = c("0.99", "0.95", "0.90", "0.80", "0.68"),
+        selected = "0.95"
+      )
+    ),
 
     ## Run button
     div(
@@ -145,35 +194,13 @@ mod_tool_UI <- function(id, i18n, .tr){
     ## $$$
   )
 
-  ## . + Acc4: test crosstalk --------
-  ac4 <-  accordion_panel(
-    title = "Test Crosstalk",
-    icon = bsicons::bs_icon("3-circle"),
-    value = ns("ac4"),
-
-    ## Content
-    selectInput(ns("species"), "Species", levels(datasets::iris$Species), multiple = TRUE),
-    sliderInput(
-      ns("petal_length"), "Petal Length",
-      min = min(datasets::iris$Petal.Length), max = max(datasets::iris$Petal.Length),
-      value = c(min(datasets::iris$Petal.Length), max(datasets::iris$Petal.Length))
-    ),
-    div(
-      actionButton(
-        inputId = ns("btn_to_ctalk"),
-        label = "To Test Panel"
-      ),
-      style = "margin-top: 1rem;"
-    )
-  )
-
   ## + Panels UI ======
 
   ## . + Insights elements ------
   ## . . + Initial message ------
   insight_msg <- div(
     id = ns("panel_insight_msg"),
-    bsicons::bs_icon("arrow-left"), " Start with uploading your OLAP zipfile in the sidebar.",
+    bsicons::bs_icon("arrow-left"), " Start with uploading your MAU zipfile in the sidebar.",
     class = "text-warning",
     style = "font-style: italic;"
   )
@@ -201,66 +228,42 @@ mod_tool_UI <- function(id, i18n, .tr){
   ))
 
   ## . . + Data insights -----
-  insight_p_title <- tags$h5(
-    tags$span("Survey name: ", style = "font-weight:700;"), textOutput(ns("insight_title"), inline = TRUE)
+  insight_p_title <- tagList(
+    tags$h5(textOutput(ns("insight_title"), inline = TRUE)),
+    hr(),
+    uiOutput(ns("insight_chain_info"))
   )
 
-  insight_tab_chain <- card(
-    h5("Number of results variables per Entity"),
-    tableOutput(outputId = ns("insight_chain"))
+  ## $$$
+
+  ## Row 1: Base-unit dimensions
+  insight_row_bu <- card(
+    min_height = "200px",
+    card_header(bsicons::bs_icon("diagram-3"), " Base-unit dimensions"),
+    uiOutput(ns("insight_bu_out"))
   )
 
-  insight_out_summary <- card(
-    h5("Summary of the selected numerical results variables"),
-    verbatimTextOutput(outputId = ns("insight_summary"))
+  ## Row 2: Sub-unit dimensions
+  insight_row_sub <- card(
+    min_height = "200px",
+    card_header(bsicons::bs_icon("diagram-2"), " Sub-unit dimensions"),
+    uiOutput(ns("insight_sub_out"))
   )
+
+  ## ++ ##
+  ## Row 3: Measures
+  insight_row_meas <- card(
+    min_height = "160px",
+    card_header(bsicons::bs_icon("bar-chart"), " Measures"),
+    uiOutput(ns("insight_meas_out"))
+  )
+  ## ++ ##
+
+  ## $$$
 
 
   ## . + Panel: analysis ------
   ## Statistical analysis
-
-  ## . + Panel crosstalk ------
-
-  ## Value boxes
-  vb1 <- value_box(
-    title = "Sepal Mean length",
-    value = htmlOutput(ns("vb_seplen_mean")),
-    showcase = bsicons::bs_icon("calendar3", size = "40px"),
-    theme = "primary"
-  )
-
-  vb2 <- value_box(
-    title = "Sepal Mean Width",
-    value = htmlOutput(ns("vb_sepwid_mean")),
-    showcase = bsicons::bs_icon("pin-map", size = "40px"),
-    theme = "secondary"
-  )
-
-  vb3 <- value_box(
-    title = "Number of Species",
-    value = htmlOutput(ns("vb_nb_species")),
-    showcase = bsicons::bs_icon("arrow-repeat", size = "48px"),
-    theme = "warning"
-  )
-
-  ## Cards
-  card1 <- card(
-    full_screen = TRUE,
-    h5(i18n$t("Scatter 1")),
-    d3scatter::d3scatterOutput(ns("scatter1"))
-  )
-
-  card2 <- card(
-    full_screen = TRUE,
-    h5(i18n$t("Scatter 2")),
-    d3scatter::d3scatterOutput(ns("scatter2"))
-  )
-
-  card3 <- card(
-    h5(i18n$t("Summary of selected data")),
-    verbatimTextOutput(ns("summary"))
-  )
-
 
 
   ##
@@ -282,7 +285,10 @@ mod_tool_UI <- function(id, i18n, .tr){
         accordion(
           open = TRUE,
           multiple = TRUE,
-          ac1, ac2, ac3, ac4
+          ## $$$
+          ## ac2 removed
+          ac1, ac3
+          ## $$$
         )
       ),
 
@@ -301,8 +307,12 @@ mod_tool_UI <- function(id, i18n, .tr){
           id = ns("panel_insights"),
           tags$h3("Data insights"),
           insight_p_title,
-          br(),
-          layout_column_wrap(insight_tab_chain, insight_out_summary, width = "300px")
+          hr(),
+          uiOutput(ns("insight_current_selection")),
+          hr(),
+          insight_row_bu,
+          insight_row_sub,
+          insight_row_meas
         ))
       ),
 
@@ -315,6 +325,7 @@ mod_tool_UI <- function(id, i18n, .tr){
 
         ## $$$
 
+        ## ++ ##
         ## No-results message (visible until first analysis is run)
         div(
           id    = ns("analysis_no_result"),
@@ -324,77 +335,188 @@ mod_tool_UI <- function(id, i18n, .tr){
           style = "font-style: italic;"
         ),
 
+        ## Analysis progress - shown while fct_arenalyse() is running
+        shinyjs::hidden(div(
+          id = ns("analysis_progress"),
+          h3("Running analysis"),
+          shinyWidgets::progressBar(
+            id = ns("analysis_progress_bar"),
+            value = 0,
+            title = "Running analysis",
+            display_pct = TRUE
+          ),
+          br(),
+          div(
+            id = ns("analysis_console"),
+            style =
+              "height: 300px; overflow-y: auto; background-color:#f7f7f7; font-family:monospace; font-size: small;"
+          ),
+          br(),
+          shinyjs::disabled(
+            actionButton(
+              inputId = ns("btn_analysis_results"),
+              label = "Show analysis results"
+            )
+          )
+        )),
+
         ## Results layout - hidden until analysis completes
         shinyjs::hidden(div(
           id = ns("analysis_results"),
 
-          ## -- Row 1: main plot controls ----------------------------------
+          ## ++ ##
+          ## -- Row 1: analysis table --------------------------------------
+          ## ++ ##
           card(
+            card_header("Cross outputs settings"),
             layout_column_wrap(
-              width = "180px",
+              width = "220px",
               fill  = FALSE,
-              selectInput(ns("plot_dim"),     "X-axis dimension", choices = NULL),
-              selectInput(ns("plot_measure"), "Measure (Y axis)", choices = NULL),
-              ## $$$
-              ## selectInput(ns("plot_fill"),  "Group by (fill)", choices = NULL),
-              ## selectInput(ns("plot_facet"), "Facet by",        choices = NULL),
-              selectizeInput(ns("plot_fill"),  "Group by (fill)", choices = NULL,
-                             options = list(placeholder = "-- none --", allowEmptyOption = TRUE)),
-              selectizeInput(ns("plot_facet"), "Facet by",        choices = NULL,
-                             options = list(placeholder = "-- none --", allowEmptyOption = TRUE)),
-              ## $$$
-              ## $$$
-              ## class = "pt-4" reduced to pt-1
-              div(
-                class = "pt-1",
-                checkboxInput(ns("plot_errbar"), "Error bars", value = TRUE)
+              selectInput(
+                ns("analysis_sel_measure"),
+                "Measure",
+                choices = NULL,
+                selected = NULL
               )
-              ## $$$
             ),
-            ## -- Row 2: extra dimension filters (shown only when >3 dims used) --
             uiOutput(ns("analysis_extra_filters"))
           ),
 
-          ## -- MEANS plot --------------------------------------------------
           card(
-            full_screen  = TRUE,
-            card_header("Means (per ha)"),
-            plotOutput(ns("analysis_plot_means"), height = "400px")
+            full_screen = TRUE,
+            card_header("Results table"),
+            layout_column_wrap(
+              width = "220px",
+              fill  = FALSE,
+              div(
+                id = ns("analysis_table_source_wrap"),
+                selectInput(
+                  ns("analysis_table_source"),
+                  "Table source",
+                  choices = c("Means (per ha)" = "MEANS", "Totals" = "TOTALS"),
+                  selected = "MEANS"
+                )
+              )
+            ),
+            div(
+              style = "display: flex; gap: 0.75rem; align-items: center; margin: 0.75rem 0;",
+              actionButton(
+                ns("analysis_table_copy"),
+                "Copy visible table",
+                class = "btn-sm"
+              ),
+              downloadButton(
+                ns("analysis_table_download"),
+                "Download full table (CSV)",
+                class = "btn-sm"
+              )
+            ),
+            DT::DTOutput(ns("analysis_table"))
           ),
 
-          ## -- TOTALS plot -------------------------------------------------
+          card(
+            card_header("Figure settings"),
+            layout_column_wrap(
+              width = "180px",
+              fill  = FALSE,
+              selectInput(ns("plot_dim"), "X-axis dimension", choices = NULL),
+              selectizeInput(
+                ns("plot_fill"),
+                "Group by",
+                choices = NULL,
+                options = list(placeholder = "-- none --", allowEmptyOption = TRUE)
+              ),
+              selectizeInput(
+                ns("plot_facet"),
+                "Facet by",
+                choices = NULL,
+                options = list(placeholder = "-- none --", allowEmptyOption = TRUE)
+              )
+            ),
+            hr(style = "margin: 0.9rem 0 0.75rem 0;"),
+            layout_column_wrap(
+              width = "180px",
+              fill  = FALSE,
+              div(
+                class = "pt-1",
+                checkboxInput(ns("plot_errbar"), "Error bars", value = TRUE)
+              ),
+              div(
+                class = "pt-1",
+                checkboxInput(ns("plot_flip"), "Swap axis", value = FALSE)
+              ),
+              div(
+                class = "pt-1",
+                checkboxInput(ns("plot_wrap_labels"), "Wrap labels", value = TRUE)
+              ),
+              div(
+                class = "pt-1",
+                checkboxInput(ns("plot_hide_legend"), "Hide legend", value = FALSE)
+              )
+            ),
+            uiOutput(ns("analysis_plot_guidance"))
+          ),
+
+          div(
+            id = ns("analysis_means_card"),
+            card(
+              full_screen  = TRUE,
+              card_header("Means (per ha)"),
+              div(
+                style = "width: fit-content; margin-bottom: 0.75rem;",
+                downloadButton(
+                  ns("analysis_plot_means_download"),
+                  "Download means plot (PNG)",
+                  class = "btn-sm"
+                )
+              ),
+              plotOutput(ns("analysis_plot_means"), height = "400px")
+            )
+          ),
+
           card(
             full_screen  = TRUE,
             card_header("Totals"),
+            div(
+              style = "width: fit-content; margin-bottom: 0.75rem;",
+              downloadButton(
+                ns("analysis_plot_totals_download"),
+                "Download totals plot (PNG)",
+                class = "btn-sm"
+              )
+            ),
             plotOutput(ns("analysis_plot_totals"), height = "400px")
+          ),
+
+          card(
+            card_header("Export report"),
+            div(
+              style = "display: flex; gap: 0.75rem; align-items: end; flex-wrap: wrap;",
+              div(
+                style = "min-width: 220px;",
+                selectInput(
+                  ns("analysis_report_format"),
+                  "Report format",
+                  choices = c("Word" = "docx", "HTML" = "html"),
+                  selected = "docx"
+                )
+              ),
+              div(
+                style = "width: fit-content; margin-bottom: 0.5rem;",
+                downloadButton(
+                  ns("analysis_report_download"),
+                  "Download report",
+                  class = "btn-sm"
+                )
+              )
+            )
           )
+          ## ++ ##
 
         ))
+        ## ++ ##
 
         ## $$$
-      ),
-
-      ## + crosstalk panel =========
-
-      nav_panel(
-        title = "crosstalk",
-        value = "tab_ctalk",
-        icon = icon("magnifying-glass"),
-        ## Value boxes
-        div(
-          id = ns("vb_section"),
-          layout_column_wrap(
-            #width = "200px",
-            fill = FALSE,
-            vb1, vb2, vb3
-          )
-        ),
-        ## Cards
-        div(
-          id = ns("card_section"),
-          layout_column_wrap(card1, card2, width = "300px"),
-          card3
-        )
       )
 
     ) ## END navset_card_tab()

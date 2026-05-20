@@ -6,10 +6,10 @@
 #
 #
 # ## Dummy data, not big
-# .zip <- fct_readzip2(.path = "inst/extdata/OLAP_Shiny_demo.zip") ; names(.zip)
+# .zip <- fct_readzip(.path = "inst/extdata/OLAP_Shiny_demo.zip") ; names(.zip)
 #
 # ## Big files
-# # .zip <- fct_readzip2(.path = "/Users/gaelsola/Documents/FAO-2026/support-arenalytics/OLAP_Shiny_(png_nfi_2024_upperplant).zip")
+# # .zip <- fct_readzip(.path = "/Users/gaelsola/Documents/FAO-2026/support-arenalytics/OLAP_Shiny_(png_nfi_2024_upperplant).zip")
 #
 # ## Get entity and reporting dim from chain_summary
 # .entity <- .zip$chain_summary$analysis$entity

@@ -83,8 +83,11 @@
 # devtools::load_all() ; shiny_run_arenalytics()
 ## Checks
 # Sys.setenv("_R_CHECK_SYSTEM_CLOCK_" = 0) ; devtools::check()
-
-
+#
+#
+# ## Moving from  arenalytics.dev to arenalytic main package
+# ## 1. copy: R/, inst/, and DESCRIPTION only package if needed.
+#
 # root    <- "/Users/gaelsola/Github-collabs/arenalytics"
 # patterns <- c("arenalytics\\.dev", "shiny_run_arenalytics_dev")
 #

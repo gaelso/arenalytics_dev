@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_checkzip.R
 \name{fct_checkzip}
 \alias{fct_checkzip}
-\title{Check OpenForis Arena OLAP ZIP file integrity}
+\title{Check OpenForis Arena pre-processed ZIP file integrity}
 \usage{
 fct_checkzip(.path)
 }

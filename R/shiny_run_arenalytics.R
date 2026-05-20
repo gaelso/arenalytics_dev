@@ -57,7 +57,7 @@ shiny_run_arenalytics <- function(...) {
     )
   }
 
-  app_window_title <- "Arena Dashboard - OpenForis"
+  app_window_title <- "Arena Dashboard - Open Foris"
 
   ## App colors
   app_primary_color   <- "#4991B0"
@@ -97,12 +97,27 @@ shiny_run_arenalytics <- function(...) {
   app_footer <- div(
     class = "container footer text-center",
     tags$small(
-      "(c) 2026 MyApp - Developed by ",
-      tags$strong("Your Name"),
-      " - With the support of XYZ Institute"
+      "(c) 2026-05 Arenalytics v1.0.0 - Developed by ",
+      tags$strong("Arenalytics Team"),
+      " - for ",
+      tags$a("Open Foris Arena", href = "https://www.openforis.org/arena/", target = "_blank")
     )
   )
 
+  # app_footer <- div(
+  #   class = "container footer text-center",
+  #   tags$small(
+  #     "(c) 2026 Arenalytics v1.0.0 - Developed by ",
+  #     tags$strong("Arenalytics Team"),
+  #     " - With the support of the ",
+  #     tags$a("AIM4Forests programme", href = "https://www.fao.org/in-action/aim4forests/en", target = "_blank")
+  #   )
+  # )
+
+sampling_strategy <- tibble::tibble(
+  code = 1:5,
+  name = c("Random Sampling", "Systematic Sampling", "Stratified Random Sampling", "Stratified Systematic Sampling", "Two-phase Sampling")
+)
 
   ##
   ## UI ########################################################################
@@ -184,7 +199,7 @@ shiny_run_arenalytics <- function(...) {
       nav_item(language_selector)
 
     ) #|> ## End page_navbar
-      ## Make navbar larger before switch to menu button
+      ## Make navbar larger before switched to menu button
       #shiny::tagAppendAttributes(.cssSelector = "nav", class = "navbar-expand-md")
 
   ) ## End tagList
@@ -202,11 +217,9 @@ shiny_run_arenalytics <- function(...) {
     rv <- reactiveValues(
       inputs   = reactiveValues(),
       insights = reactiveValues(),
-      ct       = reactiveValues(),
-      actions  = reactiveValues(),
-      ## $$$
-      analysis = reactiveValues()
-      ## $$$
+      # ct       = reactiveValues(),
+      analysis = reactiveValues(),
+      actions  = reactiveValues()
     )
 
     ## NOT USED - Save language value to show/hide entire divs with shinyjs rather than long i18n translators

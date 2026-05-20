@@ -1,7 +1,7 @@
 # Create OLAP_Shiny_demo_corrupted.zip
 #
 # Produces a ZIP with the same 10 files as OLAP_Shiny_demo.zip, but with two
-# intentionally corrupted entries for testing fct_readzip2() error handling:
+# intentionally corrupted entries for testing fct_readzip() error handling:
 #
 #   categories.rds  — replaced with random bytes (readRDS fails:
 #                     "unknown input format")

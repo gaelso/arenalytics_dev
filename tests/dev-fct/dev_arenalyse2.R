@@ -3,7 +3,7 @@ fct_arenalyse2 <- function(.zip, .entity, .dim) {
 
   ## !!! FOR TESTING ONLY
   # devtools::load_all()
-  # .zip <- fct_readzip2(.path = "inst/extdata/OLAP_Shiny_demo.zip") ; names(.zip)
+  # .zip <- fct_readzip(.path = "inst/extdata/OLAP_Shiny_demo.zip") ; names(.zip)
   # .entity <- .zip$chain_summary$analysis$entity
   # .dim <- .zip$chain_summary$analysis$dimensions
   # .dim

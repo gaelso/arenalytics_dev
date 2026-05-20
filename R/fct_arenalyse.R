@@ -5,18 +5,40 @@
 #' the chain summary. Supports simple random sampling (SRS), stratified SRS, and
 #' cluster sampling designs.
 #'
-#' @param .zip Named list produced by \code{fct_readzip2()}. Must contain:
+#' @param .zip Named list produced by \code{fct_readzip()}. Must contain:
 #'   \describe{
 #'     \item{chain_summary}{Survey chain metadata (sampling strategy, base unit,
 #'       result variables, language, etc.).}
 #'     \item{schema_summary}{Data dictionary describing all input dimensions.}
 #'     \item{report_dimensions}{Available reporting dimensions.}
-#'     \item{OLAP_<entity>}{Wide-format OLAP table for the target entity.}
+#'     \item{MAU_<entity>}{Minimal Area Unit tables for the target entity.}
 #'   }
 #' @param .entity Character scalar. Name of the entity to analyse (e.g.
 #'   \code{"tree"}, \code{"plot"}).
 #' @param .dim Character vector. Names of the reporting dimensions to include
 #'   (e.g. \code{c("plot_forest_type", "plot_province")}).
+#' @param .pvalue P-value for the standard error estimation.
+#' @param .cm Compute mode, One of `"fast"` or `"safe"`. `"fast"` computes all
+#'   measures in a single survey summary call; `"safe"` computes each measure
+#'   separately and keeps partial results when some measures fail.
+#' @param .lonely Lonely-PSU handling strategy. One of:
+#'   \describe{
+#'     \item{`"adjust"` (default)}{Substitutes the grand mean across strata for
+#'       the single-PSU stratum's variance contribution, extended to domain
+#'       (grouped) estimates via \code{survey.adjust.domain.lonely = TRUE}.
+#'       Produces a conservative (upward-biased) but valid SE. Recommended when
+#'       fine-grained cross-tabulations are expected.}
+#'     \item{`"remove"`}{Drops the lone stratum from variance computation
+#'       (\code{survey.adjust.domain.lonely = FALSE}). Faster and less
+#'       conservative, but can silently underestimate SE for affected groups.
+#'       May still error on domain estimates if the lonely PSU falls within a
+#'       reporting group — safe only when base-unit dimensions are few and
+#'       strata are well-populated.}
+#'   }
+#' @param .pb_ss A Shiny session for [shinyWidgets::updateProgressBar()].
+#'   Default `NULL`.
+#' @param .pb_id The widget ID for [shinyWidgets::updateProgressBar()].
+#'   Default `NULL`.
 #'
 #' @return A named list with two elements:
 #'   \describe{
@@ -25,116 +47,94 @@
 #'     \item{TOTALS}{Tibble of estimated totals derived from \code{MEANS} by
 #'       multiplying by expansion area.}
 #'   }
-#'   Both tibbles include \code{area}, \code{item_count}, \code{base_unit_count},
-#'   and optionally \code{cluster_count} columns.
+#'   Both tibbles include \code{area}, \code{item_count},
+#'   \code{base_unit_count}, and optionally \code{cluster_count} columns.
 #'
 #' @importFrom rlang .data
 #'
 #' @export
-fct_arenalyse <- function(.zip, .entity, .dim) {
+fct_arenalyse <- function(.zip, .entity, .dim, .pvalue = 0.95, .cm, .lonely = "adjust", .pb_ss = NULL, .pb_id = NULL) {
 
   ## !!! FOR TESTING ONLY
-  # .zip <- fct_readzip2(.path = "inst/extdata/OLAP_Shiny_demo.zip") ; names(.zip)
-  # .entity <- .zip$chain_summary$analysis$entity
-  # .dim <- .zip$chain_summary$analysis$dimensions
-  # .dim
-  # summary(.zip[[paste0("OLAP_", .entity)]])
+  # .zip <- "inst/extdata/OLAP_shiny_demo.zip"
+  # var_meta <- .zip$var_meta$tree ; .zip <- .zip$data
+  # .entity = "tree" ; .dim = c("stratum", "tree_dbh_class_10")
+  # .cm = "fast" ; .pb_ss = NULL ; .pb_id = NULL ; .lonely = "adjust" ; .pvalue = 0.95
   ## !!!
 
+  ## ++ ##
+  log_step <- function(text, value = NULL) {
+    message(sprintf("[%s] %s", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), text))
+
+    if (!is.null(value) && !is.null(.pb_ss) && !is.null(.pb_id)) {
+      shinyWidgets::updateProgressBar(
+        session = .pb_ss,
+        id = .pb_id,
+        value = round(value)
+      )
+    }
+  }
+
   ## 0. Coerce inputs ------
-  .zip$chain_summary$resultVariables <- tibble::as_tibble(.zip$chain_summary$resultVariables)
+  log_step(paste0("Preparing analysis for entity '", .entity, "'."), value = 5)
+
+  .zip$chain_summary$resultVariables <- tibble::as_tibble(
+    .zip$chain_summary$resultVariables
+  )
   .zip$schema_summary    <- tibble::as_tibble(.zip$schema_summary)
   .zip$report_dimensions <- tibble::as_tibble(.zip$report_dimensions)
 
   chain          <- .zip$chain_summary
-  label_language <- paste0("label_", chain$selectedLanguage)
-  clevel         <- chain$analysis$pValue
+  entity_tblname <- stringr::str_subset(names(.zip), .entity)
+  entity_prefix  <- stringr::str_remove(entity_tblname, .entity)
 
-  ## 1. Entity labels & wide table ------
-  label_cols <- .zip$schema_summary |>
-    dplyr::filter(.data$type == "entity") |>
-    dplyr::select(entity = "name", label = dplyr::all_of(label_language))
+  ## Get entity data
+  wt <- .zip[[entity_tblname]] |> tibble::as_tibble()
 
-  wt_filename <- chain$resultVariables |>
-    dplyr::filter(.data$areaBased, .data$active) |>
-    dplyr::select("entityPath", "entity") |>
-    dplyr::distinct() |>
-    dplyr::mutate(wide_table = paste0("OLAP_", .data$entity)) |>
-    dplyr::left_join(label_cols, by = "entity") |>
-    dplyr::filter(.data$entity == .entity) |>
-    dplyr::pull("wide_table")
+  ## Get entity columns metadata
+  wt_names <- fct_varinfo(.zip = .zip, .entity = .entity)
+  log_step("Entity metadata loaded.", value = 15)
 
-  wt <- tibble::as_tibble(.zip[[wt_filename]])
+  ## Validate .lonely
+  .lonely <- match.arg(.lonely, choices = c("adjust", "remove"))
 
-  ## 2. Column metadata ------
-  ## Result variables: code dimensions + measures derived from chain
-  rv_meta <- chain$resultVariables |>
-    dplyr::select("name", "type", "categoryName", parentEntity = "entity", "label") |>
-    dplyr::mutate(
-      report_type = dplyr::if_else(.data$type == "Q", "measure", "dimension"),
-      type        = dplyr::if_else(.data$type == "Q", "numeric", "code"),
-      source      = "chain"
-    )
-
-  ## Schema summary: input dimensions
-  ss_meta <- .zip$schema_summary |>
-    dplyr::mutate(
-      categoryName = dplyr::if_else(
-        .data$taxonomyName != "", .data$taxonomyName, .data$categoryName
-      )
-    ) |>
-    dplyr::select(
-      "name", "type", "categoryName", "parentEntity",
-      label = dplyr::all_of(label_language)
-    ) |>
-    dplyr::mutate(report_type = "dimension", source = "input")
-
-  ## Merge: schema covers input dims, rv_meta covers code dims + measures.
-  ## Fields don't overlap; suffix + coalesce handles the seam cleanly.
-  wt_names <- tibble::tibble(name = names(wt)) |>
-    dplyr::left_join(ss_meta, by = "name") |>
-    dplyr::left_join(rv_meta, by = "name", suffix = c("", "_rv")) |>
-    dplyr::mutate(
-      type         = dplyr::coalesce(.data$type,                           .data$type_rv),
-      categoryName = dplyr::coalesce(dplyr::na_if(.data$categoryName, ""), .data$categoryName_rv),
-      parentEntity = dplyr::coalesce(dplyr::na_if(.data$parentEntity, ""), .data$parentEntity_rv),
-      label        = dplyr::coalesce(dplyr::na_if(.data$label, ""),        .data$label_rv),
-      report_type  = dplyr::coalesce(dplyr::na_if(.data$report_type, ""),  .data$report_type_rv),
-      source       = dplyr::coalesce(dplyr::na_if(.data$source, ""),       .data$source_rv)
-    ) |>
-    dplyr::select(-dplyr::ends_with("_rv")) |>
-    dplyr::mutate(
-      dimension_baseunit = dplyr::if_else(.data$parentEntity == .entity, FALSE, TRUE),
-      report_type        = dplyr::if_else(.data$name == "weight", NA_character_, .data$report_type)
-    ) |>
-    ## Separate mutate: dimension_baseunit references the value set above
-    dplyr::mutate(
-      dimension_baseunit = dplyr::if_else(.data$name == "weight", NA, .data$dimension_baseunit)
-    )
-
-  ## Stratum attribute tagging
-  strat_attr_raw <- if (is.null(chain$stratumAttribute)) "" else chain$stratumAttribute
-  wt_names <- wt_names |>
-    dplyr::mutate(stratum = strat_attr_raw != "" & .data$name == strat_attr_raw)
-
-  ## Category type: Flat (F) vs Hierarchical (H — square brackets in categoryName)
-  wt_names <- wt_names |>
-    dplyr::mutate(
-      categoryNameOld = .data$categoryName,
-      categoryType    = dplyr::if_else(
-        stringr::str_detect(.data$categoryName, "(?<=\\[).*(?=\\])"), "H", "F"
-      ),
-      categoryName    = stringr::str_remove(.data$categoryName, "\\[.*")
-    )
+  ## Temporarily override survey options for the duration of this call and
+  ## restore the caller's options on exit (even if the function errors).
+  ##   "adjust": grand mean substituted for the lone stratum's variance —
+  ##             conservative but valid SE; adjust.domain.lonely = TRUE extends
+  ##             this to grouped/domain estimates (what this function produces).
+  ##   "remove": lone stratum dropped from variance; adjust.domain.lonely = FALSE.
+  ##             SE may be underestimated for affected groups; can still error on
+  ##             domain estimates where the lonely PSU falls inside a group.
+  old_survey_opt <- options(
+    survey.ultimate.cluster     = FALSE,
+    survey.lonely.psu           = .lonely,
+    survey.adjust.domain.lonely = (.lonely == "adjust")
+  )
+  on.exit(options(old_survey_opt), add = TRUE)
+  ## ++ ##
 
   ## 3. Analysis configuration ------
   base_uuid    <- paste0(chain$baseUnit, "_uuid")
-  cluster_uuid <- if (nchar(chain$clusteringEntity) > 0) paste0(chain$clusteringEntity, "_uuid") else ""
+  cluster_uuid <- if (nchar(chain$clusteringEntity) > 0) {
+    paste0(chain$clusteringEntity, "_uuid")
+  } else {
+    ""
+  }
   use_cluster  <- cluster_uuid != ""
 
-  all_dim_names <- wt_names |> dplyr::filter(.data$report_type == "dimension") |> dplyr::pull("name")
-  measures      <- wt_names |> dplyr::filter(.data$report_type == "measure")   |> dplyr::pull("name")
+  all_dim_names <- wt_names |>
+    dplyr::filter(.data$report_type == "dimension") |>
+    dplyr::pull("name")
+  measures <- wt_names |>
+    dplyr::filter(.data$report_type == "measure") |>
+    dplyr::pull("name")
 
+  strat_attr_raw <- if (is.null(chain$stratumAttribute)) {
+    ""
+  } else {
+    chain$stratumAttribute
+  }
   use_strat <- chain$samplingStrategy %in% c(3L, 4L)
   strat_col <- if (use_strat) strat_attr_raw else ""
 
@@ -161,10 +161,19 @@ fct_arenalyse <- function(.zip, .entity, .dim) {
 
   ## 4. Filter & cast analysis data ------
   ## OLAP_baseunit_total flags which rows belong to this aggregation level
+  ## !!! Now mau_baseunit_total, renaming column for backward compatibility
+  if ("OLAP_baseunit_total" %in% names(wt)) {
+    wt <- wt |> dplyr::rename(mau_baseunit_total = "OLAP_baseunit_total")
+  }
+
+  ## ++ ##
+  log_step("Filtering MAU rows and preparing analysis table.", value = 25)
+  ## ++ ##
+
   df_data <- wt |>
-    dplyr::filter(.data$OLAP_baseunit_total == all_at_bu) |>
+    dplyr::filter(.data$mau_baseunit_total == all_at_bu) |>
     dplyr::mutate(dplyr::across(dplyr::all_of(all_dim_names), as.character)) |>
-    dplyr::select(-"OLAP_baseunit_total")
+    dplyr::select(-"mau_baseunit_total")
 
   ## 5. Build df_total ------
   if (all_at_bu) {
@@ -179,9 +188,10 @@ fct_arenalyse <- function(.zip, .entity, .dim) {
 
   } else {
 
-    ## Complex case: at least one dimension is below base-unit level (e.g. tree_species).
-    ## tidyr::complete() generates all base-unit x sub-unit combinations,
-    ## then base-unit attributes (weight, exp_factor_, base-unit dims) are rejoined.
+    ## Complex case: at least one dimension is below base-unit level (e.g.
+    ## tree_species). tidyr::complete() generates all base-unit x sub-unit
+    ### combinations, then base-unit attributes (weight, exp_factor_, base-unit
+    ## dims) are rejoined.
 
     dims_subunit     <- setdiff(dims, dims_at_bu)
     dims_to_complete <- unique(c(base_uuid, dims_subunit))
@@ -190,13 +200,16 @@ fct_arenalyse <- function(.zip, .entity, .dim) {
     if (use_strat) {
       df_data <- df_data |>
         dplyr::mutate(
-          dplyr::across(dplyr::all_of(strat_col), ~tidyr::replace_na(.x, "NoData"))
+          dplyr::across(
+            dplyr::all_of(strat_col), ~tidyr::replace_na(.x, "NoData")
+          )
         )
     }
 
     ## Expand all sub-unit x base-unit combinations
+    ## !!! GENERATES ERROR !!! > for now solved at many-to-many relationship down below
     df_data <- if (use_strat) {
-      df_data |>
+      tt <- df_data |>
         dplyr::group_by(dplyr::across(dplyr::all_of(strat_col))) |>
         tidyr::complete(!!!rlang::syms(dims_to_complete)) |>
         dplyr::ungroup()
@@ -218,9 +231,13 @@ fct_arenalyse <- function(.zip, .entity, .dim) {
       )
 
     df_data <- df_data |>
-      dplyr::select(-"weight", -"exp_factor_", -dplyr::all_of(names_to_rejoin)) |>
+      dplyr::select(
+        -"weight", -"exp_factor_", -dplyr::all_of(names_to_rejoin)
+      ) |>
       dplyr::left_join(bu_attrs, by = base_uuid) |>
-      dplyr::mutate(dplyr::across(dplyr::any_of(measures), ~tidyr::replace_na(.x, 0)))
+      dplyr::mutate(
+        dplyr::across(dplyr::any_of(measures), ~tidyr::replace_na(.x, 0))
+      )
 
     ## Aggregate to base-unit x dimension groups
     bu_core <- df_data |>
@@ -229,7 +246,9 @@ fct_arenalyse <- function(.zip, .entity, .dim) {
 
     df_total <- df_data |>
       dplyr::filter(.data$weight > 0) |>
-      dplyr::group_by(dplyr::across(dplyr::all_of(unique(c(base_uuid, dims))))) |>
+      dplyr::group_by(
+        dplyr::across(dplyr::all_of(unique(c(base_uuid, dims))))
+      ) |>
       dplyr::summarise(
         entity_count_ = max(.data$entity_count_),
         dplyr::across(dplyr::all_of(measures), ~sum(.x, na.rm = TRUE)),
@@ -238,20 +257,28 @@ fct_arenalyse <- function(.zip, .entity, .dim) {
       dplyr::left_join(bu_core, by = base_uuid)
 
     if (use_cluster) {
-      df_total <- df_total |>
-        dplyr::left_join(
-          dplyr::distinct(df_data, dplyr::across(dplyr::all_of(c(base_uuid, cluster_uuid)))),
-          by = base_uuid
-        )
+      ## !!! CORR !!!
+      ## Can find NAs in cluster_uuid in entity tables, leading to duplicated plots
+      ## and many-to-many relationship during join
+      cluster_join <- df_data |>
+        #dplyr::filter(!is.na(cluster_uuid)) |>
+        dplyr::distinct(dplyr::across(dplyr::all_of(c(base_uuid, cluster_uuid))))
+
+      df_total <- df_total |> dplyr::left_join(cluster_join, by = base_uuid)
     }
   }
 
   ## Drop zero-area strata (area set to 0 ha)
   df_total <- df_total |> dplyr::filter(.data$exp_factor_ != 0)
+  ## ++ ##
+  log_step("Analysis table assembled.", value = 40)
+  ## ++ ##
 
   ## 6. Per-hectare values ------
   df_mean <- df_total |>
-    dplyr::mutate(dplyr::across(dplyr::all_of(measures), ~ .x / .data$exp_factor_))
+    dplyr::mutate(
+      dplyr::across(dplyr::all_of(measures), ~ .x / .data$exp_factor_)
+    )
 
   if (use_strat) {
     df_mean <- df_mean |>
@@ -269,10 +296,13 @@ fct_arenalyse <- function(.zip, .entity, .dim) {
     srvyr::as_survey_design(
       ids       = !!ids_val,
       strata    = !!strata_val,
-      weights   = .data$exp_factor_,
+      weights   = "exp_factor_",
       nest      = TRUE,
       variables = dplyr::all_of(c(dims, measures, "exp_factor_"))
     )
+  ## ++ ##
+  log_step("Survey design created.", value = 50)
+  ## ++ ##
 
   ## Remove stratum from reported dimensions if not in the original .dim request
   if (use_strat && !strat_in_dims) {
@@ -291,37 +321,173 @@ fct_arenalyse <- function(.zip, .entity, .dim) {
   } else {
     ## Area by each combination of base-unit dimensions
     areas_df <- df_total |>
-      tidyr::unite("JOIN_COL", dplyr::all_of(dims_at_bu), sep = "**", remove = FALSE, na.rm = FALSE) |>
+      tidyr::unite(
+        "JOIN_COL", dplyr::all_of(dims_at_bu), sep = "**", remove = FALSE,
+        na.rm = FALSE
+      ) |>
       dplyr::select(dplyr::all_of(base_uuid), "JOIN_COL", "exp_factor_") |>
       dplyr::distinct() |>
       dplyr::summarise(area_ = sum(.data$exp_factor_), .by = "JOIN_COL")
   }
 
   ## 9. Survey estimation ------
+  ## !!! TESTING MAP OVER MEASURES TO INC PROGRESS BAR
   t0 <- Sys.time()
 
-  out_mean <- design |>
-    dplyr::group_by(dplyr::across(dplyr::all_of(dims))) |>
-    dplyr::summarise(
-      dplyr::across(
-        .cols = dplyr::any_of(measures),
-        .fns  = list(~srvyr::survey_mean(
-          .x, na.rm = FALSE, vartype = c("se", "ci"),
-          proportion = FALSE, level = clevel, df = Inf
-        ))
-      )
-    ) |>
-    ## srvyr list-output suffix: _1 -> _1_ (placeholder, resolved in step 11)
-    dplyr::rename_with(~stringr::str_replace(.x, "_1$", "_1_"), dplyr::ends_with("_1"))
+  ## Helper: identify lonely-PSU warnings from the survey package
+  is_lonely_psu_warn <- function(w) {
+    grepl("only one PSU", conditionMessage(w), fixed = TRUE)
+  }
 
-  message("survey_mean(): ", round(difftime(Sys.time(), t0, units = "secs"), 1), "s")
+  if (.cm == "fast") {
+    log_step("Computing survey means in fast mode.", value = 50)
+    Sys.sleep(0.1)
+    log_step("Wait! Executing the {survey} package...", value = 50)
+
+    lonely_n <- 0L
+    out_mean <- withCallingHandlers(
+      {
+        design |>
+          dplyr::group_by(dplyr::across(dplyr::all_of(dims))) |>
+          dplyr::summarise(
+            dplyr::across(
+              .cols = dplyr::any_of(measures),
+              .fns  = list(~srvyr::survey_mean(
+                .x, na.rm = FALSE, vartype = c("se", "ci"),
+                proportion = FALSE, level = .pvalue, df = Inf
+              ))
+            )
+          ) |>
+          dplyr::rename_with(
+            ~stringr::str_replace(.x, "_1$", "_1_"), dplyr::ends_with("_1")
+          )
+      },
+      warning = function(w) {
+        if (is_lonely_psu_warn(w)) {
+          lonely_n <<- lonely_n + 1L
+          invokeRestart("muffleWarning")
+        }
+      }
+    )
+    if (lonely_n > 0L) {
+      log_step(sprintf(
+        "Note: %d domain group(s) had a lonely PSU \u2014 SE adjusted via grand-mean substitution.",
+        lonely_n
+      ))
+    }
+
+    ## Add test for NULL or NA in all measures (unlikely)
+    check_na <- out_mean |> dplyr::select(dplyr::where(~all(is.na(.))))
+    check_na <- ncol(check_na) == 4 * length(measures)
+
+    check_null <- ncol(out_mean) == length(dims)
+
+    if (check_na | check_null) stop("All measures NA or NULL")
+
+  } else {
+    read_errors <- character(0)
+    measure_n <- length(measures)
+
+    log_step("Computing survey means in safe mode.", value = 50)
+    Sys.sleep(0.1)
+    log_step("Wait! Executing the {survey} package...", value = 50)
+
+    ## ++ ##
+    out_mean <- purrr::imap(measures, function(m, idx) {
+      lonely_n <- 0L
+      tt <- tryCatch(
+        ## withCallingHandlers runs first: lonely-PSU warnings are muffled
+        ## and counted before they reach the outer tryCatch warning handler,
+        ## so they no longer cause the measure to be dropped.
+        withCallingHandlers(
+          {
+            design |>
+              dplyr::group_by(dplyr::across(dplyr::all_of(dims))) |>
+              dplyr::summarise(
+                dplyr::across(
+                  .cols = dplyr::any_of(m),
+                  .fns  = list(~srvyr::survey_mean(
+                    .x, na.rm = FALSE, vartype = c("se", "ci"),
+                    proportion = FALSE, level = .pvalue, df = Inf
+                  ))
+                )
+              ) |>
+              ## srvyr suffix: _1 -> _1_ (placeholder, resolved in step 11)
+              dplyr::rename_with(
+                ~stringr::str_replace(.x, "_1$", "_1_"), dplyr::ends_with("_1")
+              )
+          },
+          warning = function(w) {
+            if (is_lonely_psu_warn(w)) {
+              lonely_n <<- lonely_n + 1L
+              invokeRestart("muffleWarning")
+            }
+          }
+        ),
+        warning = function(w) {
+          msg <- conditionMessage(w)
+          message(sprintf(
+            "[%s] WARNING computing %s \u2014 %s",
+            format(Sys.time(), "%Y-%m-%d %H:%M:%S"), m, msg
+          ))
+          read_errors[[m]] <<- msg
+          NULL
+        },
+        error = function(e) {
+          msg <- conditionMessage(e)
+          message(sprintf(
+            "[%s] ERROR computing %s \u2014 %s",
+            format(Sys.time(), "%Y-%m-%d %H:%M:%S"), m, msg
+          ))
+          read_errors[[m]] <<- msg
+          NULL
+        }
+      )
+      if (!is.null(tt) && lonely_n > 0L) {
+        message(sprintf(
+          "[%s] Note (%s): %d domain group(s) had a lonely PSU \u2014 SE adjusted via grand-mean substitution.",
+          format(Sys.time(), "%Y-%m-%d %H:%M:%S"), m, lonely_n
+        ))
+      }
+
+      if (!is.null(tt)) {
+        log_step(
+          paste0("Processed measure ", idx, "/", measure_n, ": ", m, "."),
+          value = 50 + (idx / max(measure_n, 1)) * 35
+        )
+      }
+
+      tt
+    })
+    ## ++ ##
+
+    out_mean <- purrr::compact(out_mean)
+
+    if (length(out_mean) == 0) {
+      stop("No measures were successfully computed. Check warnings and errors for details.")
+    }
+
+    out_mean <- purrr::reduce(out_mean, dplyr::left_join, by = dims)
+
+  } ## End IF out_mean calc
+
+  log_step(
+    paste(
+      "survey_mean() completed in: ",
+      round(difftime(Sys.time(), t0, units = "secs"), 1), "s"
+    ),
+    value = 85
+  )
 
   ## 10. Join expansion areas ------
   if (length(dims_at_bu) == 0) {
     out_mean <- out_mean |> dplyr::mutate(area_ = total_area)
   } else {
     out_mean <- out_mean |>
-      tidyr::unite("JOIN_COL", dplyr::all_of(dims_at_bu), sep = "**", remove = FALSE, na.rm = FALSE) |>
+      tidyr::unite(
+        "JOIN_COL", dplyr::all_of(dims_at_bu), sep = "**", remove = FALSE,
+        na.rm = FALSE
+      ) |>
       dplyr::left_join(areas_df, by = "JOIN_COL")
   }
 
@@ -329,8 +495,12 @@ fct_arenalyse <- function(.zip, .entity, .dim) {
   ## Strip _1_ infix (srvyr list naming artefact) then trim trailing _
   tidy_srvyr_names <- function(df) {
     df |>
-      dplyr::rename_with(~stringr::str_replace(.x, "_1_", "_"), dplyr::contains("_1_")) |>
-      dplyr::rename_with(~stringr::str_sub(.x, end = -2),        dplyr::ends_with("_"))
+      dplyr::rename_with(
+        ~stringr::str_replace(.x, "_1_", "_"), dplyr::contains("_1_")
+      ) |>
+      dplyr::rename_with(
+        ~stringr::str_sub(.x, end = -2),        dplyr::ends_with("_")
+      )
   }
 
   out_total <- out_mean |>
@@ -338,14 +508,21 @@ fct_arenalyse <- function(.zip, .entity, .dim) {
     tidy_srvyr_names()
 
   out_mean <- tidy_srvyr_names(out_mean)
+  ## ++ ##
+  log_step("Joined expansion areas and computing totals.", value = 90)
+  ## ++ ##
 
   ## 12. Polish outputs ------
   polish <- function(df) {
     df |>
       ## "" instead of NA for character dimension columns
-      dplyr::mutate(dplyr::across(dplyr::where(is.character), ~tidyr::replace_na(.x, ""))) |>
+      dplyr::mutate(
+        dplyr::across(dplyr::where(is.character), ~tidyr::replace_na(.x, ""))
+      ) |>
       ## Negative lower CI is a modelling artefact; floor at zero
-      dplyr::mutate(dplyr::across(dplyr::ends_with("_low"), ~dplyr::if_else(.x < 0, 0, .x)))
+      dplyr::mutate(
+        dplyr::across(dplyr::ends_with("_low"), ~dplyr::if_else(.x < 0, 0, .x))
+      )
   }
 
   out_mean  <- polish(out_mean)
@@ -358,8 +535,10 @@ fct_arenalyse <- function(.zip, .entity, .dim) {
     n_bu    <- dplyr::n_distinct(df_total[[base_uuid]])
     n_items <- sum(df_total$entity_count_)
 
-    out_mean  <- out_mean  |> dplyr::mutate(base_unit_count = n_bu, item_count = n_items)
-    out_total <- out_total |> dplyr::mutate(base_unit_count = n_bu, item_count = n_items)
+    out_mean  <- out_mean |>
+      dplyr::mutate(base_unit_count = n_bu, item_count = n_items)
+    out_total <- out_total |>
+      dplyr::mutate(base_unit_count = n_bu, item_count = n_items)
 
     if (use_cluster) {
       n_cluster <- dplyr::n_distinct(df_total[[cluster_uuid]])
@@ -394,12 +573,17 @@ fct_arenalyse <- function(.zip, .entity, .dim) {
         dplyr::distinct() |>
         dplyr::summarise(cluster_count = dplyr::n(), .by = "JOIN_COL")
 
-      psu_counts <- dplyr::left_join(psu_counts, cluster_counts, by = "JOIN_COL")
+      psu_counts <- psu_counts |>
+        dplyr::left_join(cluster_counts, by = "JOIN_COL")
     }
 
     out_mean  <- dplyr::left_join(out_mean,  psu_counts, by = "JOIN_COL")
     out_total <- dplyr::left_join(out_total, psu_counts, by = "JOIN_COL")
   }
 
+  ## ++ ##
+  log_step("Polished outputs - analysis completed.", value = 100)
   list(MEANS = out_mean, TOTALS = out_total)
+  ## ++ ##
 }
+

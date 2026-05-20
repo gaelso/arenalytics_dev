@@ -2,32 +2,50 @@
 % Please edit documentation in R/fct_readzip.R
 \name{fct_readzip}
 \alias{fct_readzip}
-\title{Read OpenForis Arena OLAP zipfile data}
+\title{Read OpenForis Arena OLAP zipfile data (error-safe version)}
 \usage{
-fct_readzip(.path, .pb_session = NULL, .pb_id = NULL)
+fct_readzip(.path, .pb_ss = NULL, .pb_id = NULL)
 }
 \arguments{
 \item{.path}{A path to the data ZIP file.}
 
-\item{.pb_session}{A shiny app session for updating shinyWidgets::updateProgressBar(). Default: NULL,
-activate only in a shiny context where a shinyWidgets::progressBar() is set.}
+\item{.pb_ss}{A Shiny session for \code{\link[shinyWidgets:progress-bar]{shinyWidgets::updateProgressBar()}}.
+Default \code{NULL} (progress bar is only updated inside a Shiny context).}
 
-\item{.pb_id}{The widget ID for shinyWidgets::updateProgressBar(). Default: NULL,
-activate only in a shiny context where a shinyWidgets::progressBar() is set.}
+\item{.pb_id}{The widget ID for \code{\link[shinyWidgets:progress-bar]{shinyWidgets::updateProgressBar()}}.
+Default \code{NULL}.}
 }
 \value{
-a list of entity level data frames and survey descriptors.
+A named list of entity data frames and survey descriptors, or
+\code{NULL} if the archive itself cannot be opened. Each element is either the
+parsed file content or \code{NULL} when reading failed. Failed files are
+recorded in \code{attr(result, ".errors")} as a named character vector
+(\verb{name = error message}).
 }
 \description{
-Processing chaina of OpenForis Arena surveys generate a ZIP file
-containing field entity data at the minimum area unit (OLAP tables) and
-survey descriptors. fct_readzip() is tailored to load this data.
+A fault-tolerant version Open Foris Arena ZIP reading function. Each file inside
+the ZIP is read inside a \code{\link[=tryCatch]{tryCatch()}} so that a single corrupted file does
+not abort the entire load. Files that fail to read are returned as \code{NULL}
+in the output list, and the error messages are attached to the result as
+the \code{.errors} attribute. The caller can inspect that attribute to decide
+whether to surface a warning in the UI.
+
+The outer listing of the ZIP archive itself is also guarded: if
+\code{\link[zip:zip_list]{zip::zip_list()}} fails (e.g. the file is not a valid ZIP), the function
+returns \code{NULL} immediately with a descriptive error message.
 }
 \examples{
-zipfile <- system.file("extdata/OLAP_shiny_demo.zip", package = "arenalytics")
+zipfile <- system.file("extdata/OLAP_Shiny_demo.zip", package = "arenalytics")
 if (nzchar(zipfile) && file.exists(zipfile)) {
   zipdata <- fct_readzip(.path = zipfile)
-  summary(zipdata$OLAP_tree$tree_biomass_ag)
+
+  ## Check for any read errors
+  errs <- attr(zipdata, ".errors")
+  if (length(errs) > 0) {
+    message("Files with read errors: ", paste(names(errs), collapse = ", "))
+  }
+
+  summary(zipdata$data$OLAP_tree$tree_biomass_ag)
 }
 
 }
