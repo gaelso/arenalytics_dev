@@ -9,7 +9,7 @@
 .tr_keys <- function() {
   list(
     ## main function
-    app_title = "Analytical Dashboard for Open Foris Arena",
+    app_title = "Analytical Dashboard for Open Foris Arena - DEV -",
     nav_home  = "Home",
     nav_tool  = "Tool",
     nav_about = "About",
