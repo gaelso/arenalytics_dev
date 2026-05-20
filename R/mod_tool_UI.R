@@ -123,7 +123,7 @@ mod_tool_UI <- function(id, i18n, .tr){
     radioButtons(
       inputId = ns("analysis_mode"),
       label   = strong("Analysis type"),
-      choices = c("Area" = "area", "Other measures" = "other"),
+      choices = c("Area\u00a0\u00a0\u00a0\u00a0" = "area", "Other measures" = "other"),
       selected = "other",
       inline = TRUE
     ),
