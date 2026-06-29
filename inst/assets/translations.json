@@ -8,8 +8,8 @@
   "translation": [
     {
       "en": "Analytical Dashboard for Open Foris Arena",
-      "fr": "Mon tableau de bord",
-      "sp": "Mi panel analítico"
+      "fr": "Tableau de bord pour analyser les données Open Foris Arena",
+      "sp": "Panel analítico para Open Foris Arena"
     },
     {
       "en": "Home",
@@ -52,9 +52,9 @@
       "sp": "Para más detalles sobre el desarrollo de la aplicación o si hay algún problema, encuéntrenos en:"
     },
     {
-      "en": "Start playing with your data:",
-      "fr": "Commencez à explorer vos données :",
-      "sp": "Comience a explorar sus datos:"
+      "en": "Start playing with your data in the Tool section!",
+      "fr": "Commencez à explorer vos données (TR)",
+      "sp": "Comience a explorar sus datos (TR)"
     },
     {
       "en": "Here",

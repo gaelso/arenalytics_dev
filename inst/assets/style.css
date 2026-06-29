@@ -37,13 +37,13 @@ html {
 
 /* General CSS */
 body > .container-fluid {
-  min-height: 100vh;
+  min-height: 100%; /* 100% of body content box = 100vh - navbar padding */
   display: flex;
   flex-direction: column;
 }
 
 .bslib-page-navbar > .tab-content {
-  flex: 1 0 auto;
+  flex: 1; /* grow to fill available space, pushing footer down */
 }
 
 
@@ -121,7 +121,8 @@ body > .container-fluid {
 
 /* Specific CSS - Home page */
 .hero-section {
-  min-height: 75vh;
+  min-height: 40vh;
+  /*min-height: 75vh;*/
   display: flex;
   align-items: center;
 }
@@ -137,7 +138,7 @@ body > .container-fluid {
 }
 
 .hero-image {
-  max-height: 65vh;
+  max-height: 40vh;
   width: 100%;
   object-fit: cover;
   border-radius: 1.5rem;
@@ -154,8 +155,9 @@ body > .container-fluid {
 }
 
 .section-padding {
-  padding-top: 5rem;
-  padding-bottom: 5rem;
+  padding-top: 2rem;
+  /*padding-top: 5rem;*/
+  /*padding-bottom: 5rem;*/
 }
 
 

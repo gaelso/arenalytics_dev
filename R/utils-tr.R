@@ -9,7 +9,7 @@
 .tr_keys <- function() {
   list(
     ## main function
-    app_title = "Analytical Dashboard for Open Foris Arena - DEV -",
+    app_title = "Analytical Dashboard for Open Foris Arena",
     nav_home  = "Home",
     nav_tool  = "Tool",
     nav_about = "About",
@@ -20,7 +20,7 @@
     hero_btn = "Get Started",
     feat1_p1 = "A dashboard shinyApp, arenalytics, shipped as a R package, unlocking the powerful statistics of R with the visual convenience of dashboards.",
     feat1_p2 = "For more details about the app developement or if any issue, find us on:",
-    feat1_p3 = "Start playing with your data:",
+    feat1_p3 = "Start playing with your data in the Tool section!",
     feat1_btn = "Here",
     feat2_p1 = "Arena Analytics is tailored to work with",
     feat2_p2 = "Open Foris Arena helps you create a survey, collect and clean data, and develop a processing chain for calculating additional variables from your data.",

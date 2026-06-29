@@ -52,8 +52,8 @@ mod_home_UI <- function(id, i18n, .tr){
         )
       ),
       p(
-        i18n$t(.tr$feat1_p3), HTML("&nbsp;"),
-        actionButton(inputId = ns("to_tool2"), label = i18n$t(.tr$feat1_btn))
+        i18n$t(.tr$feat1_p3), HTML("&nbsp;")#,
+        #actionButton(inputId = ns("to_tool2"), label = i18n$t(.tr$feat1_btn))
       )
     )
   )
