@@ -229,7 +229,7 @@ mod_tool_UI <- function(id, i18n, .tr){
 
   ## . . + Data insights -----
   insight_p_title <- tagList(
-    tags$h5(textOutput(ns("insight_title"), inline = TRUE)),
+    #tags$h5(textOutput(ns("insight_title"), inline = TRUE)),
     hr(),
     uiOutput(ns("insight_chain_info"))
   )
