@@ -24,6 +24,9 @@ shiny_run_arenalytics <- function(...) {
   ## GLOBAL ####################################################################
   ##
 
+  # + increase max size for input files ========================================
+  options(shiny.maxRequestSize = 30 * 1024^2)
+
   ## + Initiate translation ====================================================
 
   ## !!! In a package the translation folder needs to be directed to the package location
