@@ -9,12 +9,7 @@ mod_about_server <- function(id, rv) {
 
     output$dl_example <- downloadHandler(
       filename = function(){"OLAP_Shiny_demo.zip"},
-      content  = function(file){file.copy(system.file("extdata/OLAP_Shiny_demo.zip", package = "arenalytics"), file)}
-    )
-
-    output$dl_example2 <- downloadHandler(
-      filename = function(){"OLAP_Shiny_demo_broken.zip"},
-      content  = function(file){file.copy(system.file("extdata/OLAP_Shiny_demo_broken.zip", package = "arenalytics"), file)}
+      content  = function(file){file.copy(system.file("extdata/MAU_Shiny_(testi_4_chain).zip", package = "arenalytics"), file)}
     )
 
 

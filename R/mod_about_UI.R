@@ -13,7 +13,6 @@ mod_about_UI <- function(id, i18n, .tr){
   card1 <- card(
     card_header("Download mock datasets"),
     downloadButton(outputId = ns("dl_example"), label = "Working example file"),
-    downloadButton(outputId = ns("dl_example2"), label = "Broken example file")
   )
 
 
