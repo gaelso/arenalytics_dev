@@ -446,8 +446,7 @@ mod_tool_server <- function(id, rv) {
 
       tags$div(
         tags$p(
-          style = "margin: 0 0 0.4rem 0; font-size: 1.5rem;",
-          tags$strong("Survey: "), survey_name
+          tags$strong("Survey: "), survey_name, style = "margin: 0 0 0.4rem 0; font-size: 1.5rem;",
         ),
         info_row("Cycle",                           ch$selectedCycle %||% "-"),
         info_row("Sampling strategy",               strat_name),
