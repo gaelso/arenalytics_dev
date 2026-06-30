@@ -51,9 +51,9 @@ if (length(numeric_cols) > 0) {
 
 ## Survey highlights
 
-**Survey code:** `r params$survey_code`  
+**Survey:** `r params$survey_code`  
 **Cycle number:** `r params$cycle_number`  
-**Sampling strategy code:** `r params$sampling_strategy`   
+**Sampling strategy:** `r params$sampling_strategy`  
 **Stratification attribute:** `r params$stratification_attribute`  
 **Clustering:** `r params$clustering`  
 **Clustering attribute:** `r params$clustering_attribute`  

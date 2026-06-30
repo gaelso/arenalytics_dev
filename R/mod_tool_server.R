@@ -963,8 +963,31 @@ mod_tool_server <- function(id, rv) {
       base_dims <- selected_dim_labels(TRUE)
       sub_dims  <- selected_dim_labels(FALSE)
       active_filters <- active_filter_summary()
-      ch <- rv$inputs$data$chain_summary
+      ch     <- rv$inputs$data$chain_summary
+      lang   <- ch$selectedLanguage %||% "en"
+      schema <- tibble::as_tibble(rv$inputs$data$schema_summary)
       is_clustered <- nzchar(ch$clusteringEntity %||% "")
+
+      sampling_strategy_labels <- c(
+        "1" = "Random Sampling", "2" = "Systematic Sampling",
+        "3" = "Stratified Random Sampling", "4" = "Stratified Systematic Sampling",
+        "5" = "Two-phase Sampling"
+      )
+      strat_name <- paste0(
+        sampling_strategy_labels[as.character(ch$samplingStrategy %||% "")] %||% "Unknown",
+        " (", ch$samplingStrategy, ")"
+      )
+
+      stratum_raw   <- ch$stratumAttribute %||% ""
+      stratum_label <- if (nzchar(stratum_raw)) {
+        paste0(utils_find_label(schema, stratum_raw, lang), " (", stratum_raw, ")")
+      } else "-"
+
+      cluster_attr_str <- if (is_clustered) {
+        keys   <- ch$clusteringEntityKeys %||% character(0)
+        labels <- utils_find_label(schema, keys, lang)
+        paste(paste0(labels, " (", keys, ")"), collapse = ", ")
+      } else "-"
 
       list(
         survey_label              = ch$surveyLabel %||% "Survey",
@@ -974,13 +997,13 @@ mod_tool_server <- function(id, rv) {
           format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"),
           sep = " | "
         ),
-        survey_code               = ch$surveyName %||% "-",
+        survey_code               = paste0(ch$surveyLabel %||% ch$surveyName, " (", ch$surveyName, ")"),
         cycle_number              = as.character(ch$selectedCycle %||% "-"),
-        sampling_strategy         = as.character(ch$samplingStrategy %||% "-"),
-        stratification_attribute  = ch$stratumAttribute %||% "-",
+        sampling_strategy         = strat_name,
+        stratification_attribute  = stratum_label,
         clustering                = if (is_clustered) "Yes" else "No",
-        clustering_attribute      = if (is_clustered) paste(ch$clusteringEntityKeys %||% "-", collapse = ", ") else "-",
-        nonresponse_correction    = "Unknown",
+        clustering_attribute      = cluster_attr_str,
+        nonresponse_correction    = if (isTRUE(ch$nonResponseBiasCorrection)) "Yes" else "No",
         analysis_entity           = selected_entity_label(),
         analysis_type             = if (identical(analysis_result_mode(), "area")) "Area" else "Other measures",
         base_unit_dimensions      = if (length(base_dims) > 0) paste(base_dims, collapse = ", ") else "None",
