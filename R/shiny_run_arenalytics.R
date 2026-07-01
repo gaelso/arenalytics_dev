@@ -117,10 +117,6 @@ shiny_run_arenalytics <- function(...) {
   #   )
   # )
 
-sampling_strategy <- tibble::tibble(
-  code = 1:5,
-  name = c("Random Sampling", "Systematic Sampling", "Stratified Random Sampling", "Stratified Systematic Sampling", "Two-phase Sampling")
-)
 
   ##
   ## UI ########################################################################
