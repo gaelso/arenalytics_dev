@@ -55,3 +55,4 @@ rsconnect/
 .positai
 docs
 inst/doc
+.vscode/

@@ -348,17 +348,26 @@ mod_tool_server <- function(id, rv) {
             taxo_tbl <- taxos[[cat_name]]
             cat_tbl  <- cats[[cat_name]]
 
-            lookup <- if (!is.null(taxo_tbl) && "scientific_name" %in% names(taxo_tbl)) {
+            is_taxo <- !is.null(taxo_tbl) && "scientific_name" %in% names(taxo_tbl)
+
+            ## Category lookup in category order: by parent codes for hierarchical categories, then code
+            lookup <- if (is_taxo) {
               purrr::set_names(as.character(taxo_tbl$scientific_name), as.character(taxo_tbl$code))
             } else if (!is.null(cat_tbl)) {
               lbl_col <- if (label_col %in% names(cat_tbl)) label_col else "label"
+              cat_tbl <- cat_tbl |> dplyr::arrange(dplyr::across(dplyr::matches("^level_\\d+_code$")), .data$code)
               ## !!! Replaced code with code_joint, should solve multi-level cats
               purrr::set_names(as.character(cat_tbl[[lbl_col]]), as.character(cat_tbl$code_joint))
             }
             if (is.null(lookup)) return(acc)
 
-            acc |>
+            acc <- acc |>
               dplyr::mutate(!!col := dplyr::coalesce(unname(lookup[as.character(.data[[col]])]), as.character(.data[[col]])))
+            if (is_taxo) return(acc)
+
+            ## Category labels as factors to keep category order in tables and plots
+            acc |>
+              dplyr::mutate(!!col := factor(.data[[col]], levels = unique(c(unname(lookup), sort(unique(.data[[col]]))))))
           }, .init = df) |>
           dplyr::select(-dplyr::any_of(cols_drop)) |>
           dplyr::relocate(dplyr::any_of(c("item_count", "base_unit_count", "cluster_count")), .after = dplyr::last_col())
@@ -666,7 +675,7 @@ mod_tool_server <- function(id, rv) {
       req(rv$analysis$result, rv$analysis$dim_meta)
 
       filter_inputs <- purrr::map(rv$analysis$dims, \(d) {
-        vals <- sort(unique(rv$analysis$result$MEANS[[d]]))
+        vals <- as.character(sort(unique(rv$analysis$result$MEANS[[d]])))
         shinyWidgets::virtualSelectInput(
           inputId          = ns(paste0("filter_dim__", d)),
           label            = rv$analysis$dim_meta |> dplyr::filter(.data$name == d) |> dplyr::pull("label") |> dplyr::first(),

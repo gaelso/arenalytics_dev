@@ -4,6 +4,7 @@
 ^\.github$
 ^\.positai$
 ^\.claude$
+^\.vscode$
 ^app\.R$
 ^rsconnect$
 ^data-raw$
@@ -13,3 +14,4 @@
 ^data-raw/tmp$
 ^data-raw/arenalytics_offline_pkgs\.zip$
 ^data-raw/arenalytics_offline_pkgs_WIN\.zip$
+^CLAUDE\.md$
