@@ -1,7 +1,9 @@
 
-/* Fix last menu item dropping on resizing with navbar-expand-sm */
+/* Fix last menu item dropping on resizing with navbar-expand-sm,
+   all items (links, light/dark toggle, language selector) on one centre line */
 .navbar-nav {
   flex-wrap: nowrap;  /* prevent wrapping */
+  align-items: center;
 }
 .navbar {
   /*overflow-x: auto;     /* optional: allow scrolling if too wide */
@@ -28,7 +30,7 @@ html, body {
 }
 
 body {
-  padding-top: 70px;
+  padding-top: 72px; /* fixed navbar: 72 px FAO logo block */
 }
 
 html {
@@ -66,8 +68,24 @@ body > .container-fluid {
 }
 */
 
-/* Force dark color navbar text elements in Yeti theme */
-.navbar {
+/* Navbar background follows the light/dark theme */
+.navbar.navbar-default {
+  background-color: var(--bs-tertiary-bg) !important;
+}
+
+/* Language selector and light/dark toggle vertically centred in the navbar:
+   no bottom margin on the selector's form wrapper */
+.navbar-nav .bslib-nav-item {
+  display: flex;
+  align-items: center;
+}
+.navbar-nav .shiny-input-container,
+.navbar-nav .form-group {
+  margin-bottom: 0;
+}
+
+/* Force dark color navbar text elements in Yeti theme (light theme only) */
+:root:not([data-bs-theme=dark]) .navbar {
   --bs-navbar-color: rgba(0, 0, 0, 0.65) !important;
   --bs-navbar-hover-color: rgba(0, 0, 0, 0.8) !important;
   --bs-navbar-disabled-color: rgba(0, 0 , 0, 0.3) !important;
@@ -88,35 +106,229 @@ body > .container-fluid {
   --bs-border-radius-2xl: var(--bs-border-radius-xxl);
 }
 
+/* All cards: 0.5rem border radius */
+.card {
+  --bs-card-border-radius: 0.5rem;
+  --bs-card-inner-border-radius: calc(0.5rem - var(--bs-card-border-width, 1px));
+  border-radius: 0.5rem;
+}
+
+/* App colors (light/dark values set as --app-* in the page head, R/shiny_run_arenalytics.R) */
+
+/* Accordion headers: Open Foris green tint */
+.accordion {
+  --bs-accordion-btn-bg: var(--app-secondary-tint);
+  --bs-accordion-active-bg: var(--app-secondary-tint);
+  --bs-accordion-active-color: var(--bs-body-color);
+}
+
+/* Dark theme: info and success text use the lighter dark-theme values
+   (orange warning and red danger stay identical in both themes) */
+[data-bs-theme=dark] .text-info {
+  color: var(--app-info) !important;
+}
+[data-bs-theme=dark] .text-success {
+  color: var(--app-success) !important;
+}
+
+/* Toggle buttons (shinyWidgets status "outline-secondary"): Open Foris green,
+   lighter green outline and text on dark backgrounds */
+[data-bs-theme=dark] .btn-outline-secondary {
+  --bs-btn-color: var(--app-secondary);
+  --bs-btn-border-color: var(--app-secondary);
+}
+
+/* Buttons: FAO Design System primary button (v3.7.2), white text, lighter blue on
+   hover, focus and click; brighter blue in dark theme (--app-btn-primary*) */
+.btn.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--app-btn-primary);
+  --bs-btn-border-color: var(--app-btn-primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--app-btn-primary-hover);
+  --bs-btn-hover-border-color: var(--app-btn-primary-hover);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--app-btn-primary-hover);
+  --bs-btn-active-border-color: var(--app-btn-primary-hover);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--app-btn-primary);
+  --bs-btn-disabled-border-color: var(--app-btn-primary);
+}
+.btn.btn-primary:focus-visible,
+.btn.btn-primary:focus-within {
+  background-color: var(--app-btn-primary-hover);
+  border-color: var(--app-btn-primary-hover);
+}
+
+/* Button with a chevron after the label (FAO Design System .btn-icon) */
+.btn-icon .bi {
+  display: inline-block;
+  margin-left: 0.5rem;
+  vertical-align: -0.1em;
+}
+
 /* Rm container-name to avoid showcase moving to top in value box */
 .bslib-value-box {
   container-name: none !important;
 }
 
-/* Specific CSS - Navbar Logo */
-.navbar-logo {
-  transition: transform 0.3s ease;
+/* Specific CSS - FAO header ------
+   FAO logo top left, 3-line variant: 48 px logo, 12 px clear space above and below
+   (>= 20% of the emblem, block >= 70 px, FAO Logo Policy 5.4), used unmodified:
+   height only, no animation or effect (5.7) */
+.navbar.navbar-default {
+  min-height: 72px;
+  padding-top: 0;
+  padding-bottom: 0;
 }
-.navbar-logo:hover {
-  transform: rotate(360deg);
+
+.app-brand {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.header-logo-block {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 12px 15px 12px 0;
+}
+
+.header-logo {
+  height: 48px;
+  width: auto;
+  max-width: none;
+}
+
+/* Blue logo on light, white logo on dark */
+.header-logo-dark,
+[data-bs-theme=dark] .header-logo-light {
+  display: none;
+}
+[data-bs-theme=dark] .header-logo-dark {
+  display: inline;
+}
+
+/* App name after the logo, separated by a vertical rule; a link to the home page
+   that keeps the title look (navbar text colour), no hover effect */
+.app-title {
+  flex-direction: column;
+  border-left: 1px solid var(--bs-border-color);
+  padding-left: 1rem;
+  line-height: 1.3;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Always two lines: the name, then the description (never wraps) */
+.app-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.app-subtitle {
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.app-title:hover {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Small screens: the logo stays top left, the menu button goes to the right */
+.navbar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.navbar-header .navbar-toggle {
+  order: 2;
+  margin-left: auto;
+}
+@media (max-width: 1199.98px) {
+  .navbar-header {
+    flex-grow: 1;
+  }
 }
 
 /* Specific CSS - Footer */
 .footer {
   margin-top: auto;
   /*padding: 1.5rem 0;*/
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid var(--bs-border-color);
   font-size: 0.9rem;
-  color: #6c757d;
+  color: var(--bs-secondary-color);
 }
 
-.footer a {
+/* FAO footer (FAO Design System application footer): Global Goals identity bottom
+   left, FAO links separated by vertical bars, (c) FAO on the right.
+   All footer text black on light, white on dark (--bs-emphasis-color) */
+.footer-app {
+  padding: 1rem 0;
+  color: var(--bs-emphasis-color);
+}
+
+.footer-app .footer-logo img {
+  height: 60px; /* >= 37.8 px minimum, clear space around it */
+  width: auto;
+  margin: 1.5rem 1.5rem 1.5rem 0;
+}
+
+.gg-logo-dark,
+[data-bs-theme=dark] .gg-logo-light {
+  display: none;
+}
+[data-bs-theme=dark] .gg-logo-dark {
+  display: inline;
+}
+
+.footer-app .footer-links ul {
+  font-size: 14px;
+}
+.footer-app .footer-links li {
+  position: relative;
+}
+.footer-app .footer-links li:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -6px;
+  width: 1px;
+  height: 100%;
+  background: var(--bs-border-color);
+}
+.footer-app .footer-links li:last-child:after {
+  content: none;
+}
+
+.footer-app .copyright {
+  font-size: 13px;
   color: inherit;
-  text-decoration: none;
 }
 
-.footer a:hover {
+/* Panel tabs (e.g. Insights / Analysis): black on light, white on dark, like the links */
+.card-header-tabs .nav-link,
+.card-header-tabs .nav-link:hover {
+  color: var(--bs-emphasis-color);
+}
+
+/* Text links (page content and footer): black on light, white on dark, underlined,
+   grey on hover (--app-link-hover: FAO Gray Dark on light, Gray Medium on dark);
+   buttons, tabs and menus keep their own style */
+.tab-content a:not(.btn):not(.nav-link):not(.page-link):not(.dropdown-item):not([class*="bslib-full-screen"]),
+.footer a {
+  color: var(--bs-emphasis-color);
   text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tab-content a:not(.btn):not(.nav-link):not(.page-link):not(.dropdown-item):not([class*="bslib-full-screen"]):hover,
+.footer a:hover {
+  color: var(--app-link-hover);
 }
 
 /* Specific CSS - Home page */
@@ -129,12 +341,12 @@ body > .container-fluid {
 
 .hero-title {
   font-weight: 700;
-  font-size: 2.5rem;
+  font-size: 2rem;
 }
 
 .hero-subtitle {
   font-size: 1.25rem;
-  color: #6c757d;
+  color: var(--bs-secondary-color);
 }
 
 .hero-image {
@@ -146,7 +358,7 @@ body > .container-fluid {
 
 .feature-card {
   transition: all 0.2s ease-in-out;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
 }
 
 .feature-card:hover {
