@@ -1,6 +1,8 @@
 ## Custom gitignore
 *.DS_Store
 data-raw/*.zip
+## FAO branding references: OCC documents are FOR INTERNAL USE ONLY, never commit them
+tests/branding/
 ## Github default R gitignore
 # History files
 .Rhistory
