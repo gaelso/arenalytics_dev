@@ -31,8 +31,8 @@ mod_home_UI <- function(id, i18n, .tr){
     ## ACTION BUTTON
     actionButton(
       inputId = ns("to_tool"),
-      label = i18n$t(.tr$hero_btn),
-      class = "btn btn-primary btn-lg px-4"
+      label = tagList(i18n$t(.tr$hero_btn), bsicons::bs_icon("chevron-right")),
+      class = "btn-primary btn-icon" ## FAO Design System primary button with chevron
     )
   )
 
@@ -83,7 +83,13 @@ mod_home_UI <- function(id, i18n, .tr){
       p(i18n$t(.tr$feat3_p2)),
       p(
         i18n$t(.tr$feat3_p3), HTML("&nbsp;"),
-        actionButton(inputId = ns("to_about"), label = i18n$t(.tr$feat3_btn))
+        actionButton(
+          inputId = ns("to_about"),
+          label = i18n$t(.tr$feat3_btn),
+          class = "btn-primary" ## FAO Design System primary button with chevron
+          # label = tagList(i18n$t(.tr$feat3_btn), bsicons::bs_icon("chevron-right")),
+          # class = "btn-primary btn-icon" ## FAO Design System primary button with chevron
+        )
       )
     )
   )

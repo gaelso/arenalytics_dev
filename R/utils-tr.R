@@ -9,14 +9,14 @@
 .tr_keys <- function() {
   list(
     ## main function
-    app_title = "Analytical Dashboard for Open Foris Arena",
+    app_title = "Analytical Dashboard for National Forest Inventories and Complex Surveys", ## 2nd line of the header title, under {Arenalytics}
     nav_home  = "Home",
     nav_tool  = "Tool",
     nav_about = "About",
 
     ## Home UI
-    hero_title = "Powerful analytics for your Open Foris Arena data",
-    hero_txt = "Explore your data from Open Foris Arena, gain insights and develop report-ready figures and statistics.",
+    hero_title = "Turn field data into report-ready figures and statistics",
+    hero_txt = "Create a survey in Open Foris Arena, collect the data and come here to explore it, gain insights and produce reliable estimates.",
     hero_btn = "Get Started",
     feat1_p1 = "A dashboard shinyApp, arenalytics, shipped as a R package, unlocking the powerful statistics of R with the visual convenience of dashboards.",
     feat1_p2 = "For more details about the app developement or if any issue, find us on:",
@@ -40,7 +40,16 @@
     ac1_msg_nodata = "No data uploaded.",
     ac1_msg_ok = "Data structure OK.",
     ac1_msg_err = "Incorrect data uploaded.",
-    ac1_btn = "Read data"
+    ac1_btn = "Read data",
+
+    ## FAO footer: link labels as on the fao.org footer
+    footer_contact      = "Contact us",
+    footer_terms        = "Terms and Conditions",
+    footer_privacy      = "Data protection and privacy",
+    footer_scam         = "Scam Alert",
+    footer_misconduct   = "Report Misconduct",
+    footer_transparency = "Transparency and accountability",
+    footer_credit       = "Developed for"
 
 
 

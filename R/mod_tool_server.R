@@ -182,6 +182,7 @@ mod_tool_server <- function(id, rv) {
         tags$label(class = "form-label", strong("Base-unit dimensions")),
         shinyWidgets::checkboxGroupButtons(
           inputId    = ns("analysis_bu_dims"),
+          status     = "outline-secondary", ## Open Foris green toggles
           label      = NULL,
           choices    = bu_choices,
           individual = TRUE,
@@ -192,6 +193,7 @@ mod_tool_server <- function(id, rv) {
           tags$label(class = "form-label", strong("Sub-unit dimensions")),
           shinyWidgets::checkboxGroupButtons(
             inputId    = ns("analysis_sub_dims"),
+            status     = "outline-secondary", ## Open Foris green toggles
             label      = NULL,
             choices    = sub_choices,
             individual = TRUE,

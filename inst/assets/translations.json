@@ -7,9 +7,9 @@
   ],
   "translation": [
     {
-      "en": "Analytical Dashboard for Open Foris Arena",
-      "fr": "Tableau de bord pour analyser les données Open Foris Arena",
-      "sp": "Panel analítico para Open Foris Arena"
+      "en": "Analytical Dashboard for National Forest Inventories and Complex Surveys",
+      "fr": "Analyse Guidée pour les Inventaires Forestiers Nationaux et les Enquêtes Complexes",
+      "sp": "Panel Analítico para Inventarios Forestales Nacionales y Encuestas Complejas"
     },
     {
       "en": "Home",
@@ -23,18 +23,18 @@
     },
     {
       "en": "About",
-      "fr": "À propos",
-      "sp": "Acerca de"
+      "fr": "À Propos",
+      "sp": "Acerca De"
     },
     {
-      "en": "Powerful analytics for your Open Foris Arena data",
-      "fr": "Une façon plus intelligente d'explorer les données",
-      "sp": "Una forma más inteligente de explorar datos"
+      "en": "Turn field data into report-ready figures and statistics",
+      "fr": "Transformez vos données de terrain en graphiques et statistiques directement publiables",
+      "sp": "Convierta sus datos de campo en gráficos y estadísticas directamente publicables"
     },
     {
-      "en": "Explore your data from Open Foris Arena, gain insights and develop report-ready figures and statistics.",
-      "fr": "Transformez des données complexes en informations claires grâce à une interface belle et intuitive.",
-      "sp": "Transforma datos complejos en información clara con una interfaz hermosa e intuitiva."
+      "en": "Create a survey in Open Foris Arena, collect the data and come here to explore it, gain insights and produce reliable estimates.",
+      "fr": "Créez une enquête dans Open Foris Arena, collectez les données puis revenez ici pour les explorer, en tirer des enseignements et produire des estimations fiables.",
+      "sp": "Cree una encuesta en Open Foris Arena, recopile los datos y vuelva aquí para explorarlos, obtener información útil y producir estimaciones fiables."
     },
     {
       "en": "Get Started",
@@ -135,6 +135,41 @@
       "en": "Read data",
       "fr": "FR-Read data",
       "sp": "SP-Read data"
+    },
+    {
+      "en": "Contact us",
+      "fr": "Contactez-nous",
+      "sp": "Contacto"
+    },
+    {
+      "en": "Terms and Conditions",
+      "fr": "Termes et conditions",
+      "sp": "Términos y condiciones"
+    },
+    {
+      "en": "Data protection and privacy",
+      "fr": "Protection et confidentialité des données",
+      "sp": "Protección de datos y privacidad"
+    },
+    {
+      "en": "Scam Alert",
+      "fr": "Alerte aux messages frauduleux",
+      "sp": "Alerta de estafa"
+    },
+    {
+      "en": "Report Misconduct",
+      "fr": "Signaler un cas de mauvaise conduite",
+      "sp": "Reportar mala conducta"
+    },
+    {
+      "en": "Transparency and accountability",
+      "fr": "Transparence et redevabilité",
+      "sp": "Transparencia y rendición de cuentas"
+    },
+    {
+      "en": "Developed for",
+      "fr": "Développé pour",
+      "sp": "Desarrollado para"
     }
   ]
 }

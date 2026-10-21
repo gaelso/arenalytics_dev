@@ -35,7 +35,10 @@ mod_tool_UI <- function(id, i18n, .tr){
         #buttonLabel = i18n$t(.tr$ac1_input1),
         #placeholder = i18n$t(.tr$ac1_input2),
         label = NULL
-      ),
+      ) |>
+        ## FAO primary button for "Browse..." (fileInput() has no button class argument)
+        htmltools::tagQuery() |>
+        (\(x) x$find(".btn-file")$removeClass("btn-default")$addClass("btn-primary")$allTags())(),
       ## TEST alternative shinyFiles
       ## !!! Package old and not maintained
       # br(),
@@ -81,7 +84,8 @@ mod_tool_UI <- function(id, i18n, .tr){
       shinyjs::disabled(
         actionButton(
           inputId = ns("btn_read_data"),
-          label = i18n$t(.tr$ac1_btn)
+          label = i18n$t(.tr$ac1_btn),
+          class = "btn-primary"
         )
       ),
       style = "margin-top: 1rem;"
@@ -143,6 +147,7 @@ mod_tool_UI <- function(id, i18n, .tr){
     ## Lonely-PSU strategy
     shinyWidgets::radioGroupButtons(
       inputId  = ns("analysis_lonely_psu"),
+      status   = "outline-secondary", ## Open Foris green toggles
       label    = strong("Lonely PSU handling"),
       choices  = c("Adjust (conservative)" = "adjust",
                    "Remove (permissive)"   = "remove"),
@@ -154,6 +159,7 @@ mod_tool_UI <- function(id, i18n, .tr){
     ## ++ ##
     shinyWidgets::radioGroupButtons(
       inputId  = ns("analysis_compute_mode"),
+      status   = "outline-secondary", ## Open Foris green toggles
       label    = strong("Computation mode"),
       choices  = c("Fast" = "fast",
                    "Safe" = "safe"),
@@ -220,11 +226,11 @@ mod_tool_UI <- function(id, i18n, .tr){
     div(
       id = ns("readdata_console"),
       style =
-        "height: 300px; overflow-y: auto; background-color:#f7f7f7; font-family:monospace; font-size: small;"
+        "height: 300px; overflow-y: auto; background-color:var(--bs-tertiary-bg); font-family:var(--bs-font-monospace); font-size: small;"
     ),
     br(),
     shinyjs::disabled(
-      actionButton(inputId = ns("btn_data_insights"), label = "Show data insights")
+      actionButton(inputId = ns("btn_data_insights"), label = "Show data insights", class = "btn-primary")
     )
   ))
 
@@ -350,13 +356,14 @@ mod_tool_UI <- function(id, i18n, .tr){
           div(
             id = ns("analysis_console"),
             style =
-              "height: 300px; overflow-y: auto; background-color:#f7f7f7; font-family:monospace; font-size: small;"
+              "height: 300px; overflow-y: auto; background-color:var(--bs-tertiary-bg); font-family:var(--bs-font-monospace); font-size: small;"
           ),
           br(),
           shinyjs::disabled(
             actionButton(
               inputId = ns("btn_analysis_results"),
-              label = "Show analysis results"
+              label = "Show analysis results",
+              class = "btn-primary"
             )
           )
         )),
@@ -404,12 +411,12 @@ mod_tool_UI <- function(id, i18n, .tr){
               actionButton(
                 ns("analysis_table_copy"),
                 "Copy visible table",
-                class = "btn-sm"
+                class = "btn-primary btn-sm"
               ),
               downloadButton(
                 ns("analysis_table_download"),
                 "Download full table (CSV)",
-                class = "btn-sm"
+                class = "btn-primary btn-sm"
               )
             ),
             DT::DTOutput(ns("analysis_table"))
@@ -468,7 +475,7 @@ mod_tool_UI <- function(id, i18n, .tr){
                 downloadButton(
                   ns("analysis_plot_means_download"),
                   "Download means plot (PNG)",
-                  class = "btn-sm"
+                  class = "btn-primary btn-sm"
                 )
               ),
               plotOutput(ns("analysis_plot_means"), height = "400px")
@@ -483,7 +490,7 @@ mod_tool_UI <- function(id, i18n, .tr){
               downloadButton(
                 ns("analysis_plot_totals_download"),
                 "Download totals plot (PNG)",
-                class = "btn-sm"
+                class = "btn-primary btn-sm"
               )
             ),
             plotOutput(ns("analysis_plot_totals"), height = "400px")
@@ -507,7 +514,7 @@ mod_tool_UI <- function(id, i18n, .tr){
                 downloadButton(
                   ns("analysis_report_download"),
                   "Download report",
-                  class = "btn-sm"
+                  class = "btn-primary btn-sm"
                 )
               )
             )

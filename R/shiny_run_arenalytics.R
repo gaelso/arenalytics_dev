@@ -43,52 +43,167 @@ shiny_run_arenalytics <- function(...) {
   ## + Javascript ===============================
   ## Script moved to files in inst/assets and called in the header
 
+  ## Version stamp for inst/assets files (latest modification time), added to their URLs
+  ## so browsers reload CSS and JS after a change instead of using a cached copy
+  asset_v <- list.files(system.file("assets", package = "arenalytics"), recursive = TRUE, full.names = TRUE) |>
+    file.mtime() |>
+    max() |>
+    as.integer()
+
+
+  ## + FAO header and footer elements =========================================
+
+  ## Languages: shiny.i18n code -> ISO code used by <html lang> and fao.org links
+  lang_iso <- c(en = "en", fr = "fr", sp = "es")
+
+  ## Name of the Global Goals identity (alt text) in each language
+  gg_name <- c(
+    en = "FAO and the Sustainable Development Goals",
+    fr = "La FAO et les objectifs de d\u00e9veloppement durable",
+    es = "La FAO y los Objetivos de Desarrollo Sostenible"
+  )
+
+  ## FAO logo, official 3-line English files for all languages (inst/assets/branding):
+  ## black on light, white on dark (CSS). Used unmodified, height only.
+  logo_imgs <- purrr::imap(c(light = "Black", dark = "White"), \(colour, mode) {
+    tags$img(
+      class = paste0("header-logo header-logo-", mode),
+      src   = sprintf("assets/branding/FAO_Logo_English_%s_three_lines_25mm.svg", colour),
+      alt   = "Food and Agriculture Organization of the United Nations"
+    )
+  })
+
+  ## FAO Global Goals visual identity with the four betters (footer), official files,
+  ## same in all languages: black on light, white on dark (CSS). Used unmodified.
+  gg_imgs <- purrr::imap(c(light = "black", dark = "white"), \(colour, mode) {
+    tags$img(
+      class = paste0("gg-logo gg-logo-", mode),
+      src   = sprintf("assets/branding/FAO_GG_icons_H_%s.svg", colour),
+      alt   = gg_name[["en"]],
+      !!!as.list(purrr::set_names(unname(gg_name[lang_iso]), paste0("data-alt-", lang_iso)))
+    )
+  })
+
+  ## FAO footer links, path per language (data-href-<lang>)
+  footer_links <- tibble::tribble(
+    ~key,                    ~path,
+    .tr$footer_contact,      "https://www.fao.org/contact-us/%s/",
+    .tr$footer_terms,        "https://www.fao.org/contact-us/terms/%s/",
+    .tr$footer_privacy,      "https://www.fao.org/contact-us/data-protection-and-privacy/%s/",
+    .tr$footer_scam,         "https://www.fao.org/contact-us/scam-alert/%s/",
+    .tr$footer_misconduct,   "https://www.fao.org/audit-and-investigations/reporting-misconduct/%s/",
+    .tr$footer_transparency, "https://www.fao.org/transparency/%s"
+  ) |>
+    dplyr::mutate(href = purrr::map(.data$path, \(p) purrr::set_names(sprintf(p, lang_iso), paste0("data-href-", lang_iso))))
 
   ## + UI Elements =============================================================
 
-  ## App title with logo (as function because i18n$t() needs to be inside page_navbar())
+  ## App title: FAO logo top left (48 px logo, 12 px clear space above and below), not a
+  ## link (the FAO logo is not the app logo), then the app title on two lines ({Arenalytics},
+  ## then the description), a link to the home page without link styling, hidden on small screens
+  ## (as function because i18n$t() needs to be inside page_navbar())
   app_title <- function() {
     div(
+      class = "app-brand",
+      tags$span(class = "header-logo-block", logo_imgs),
       tags$a(
         href = "./", ## Send back to home page
-        alt = "Arena Dashboard",
-        tags$img(src = "assets/logo.png", height = '40px', class = "navbar-logo"), ## CANNOT EXCEED 40px to avoid resizing issues (minor)
-        .noWS = "before-end"
-      ),
-      i18n$t(.tr$app_title),
-      style = 'display:inline;font-color: black !important; font-family: "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;'
+        class = "app-title d-none d-lg-flex", ## hidden below 992 px
+        tags$span(class = "app-name", "{Arenalytics}"),
+        tags$span(class = "app-subtitle", i18n$t(.tr$app_title))
+      )
     )
   }
 
   app_window_title <- "Arena Dashboard - Open Foris"
 
-  ## App colors
-  app_primary_color   <- "#4991B0"
-  app_secondary_color <- "#77AB16"
+  ## App colors, light and dark themes
+  ## - primary: FAO Design System blue (links lighter in dark for contrast)
+  ## - secondary, success, tint: Open Foris greens (openforis.org)
+  ## - info: FAO Design System Caption blue (= Open Foris navy)
+  ## - warning, danger: FAO orange and red, FAO-approved, identical in both themes
+  ## - link_hover: FAO Design System greys, Gray Dark on light, Gray Medium on dark
+  ## - btn_primary, btn_primary_hover: FAO Design System primary button (v3.7.2), white text
+  app_colors <- list(
+    light = list(
+      primary = "#116bac",
+      link = "#116bac",
+      secondary = "#81af44",
+      secondary_tint = "#edf2e7",
+      info = "#1c4767",
+      success = "#81af44",
+      warning = "#f58320",
+      danger = "#980000",
+      link_hover = "#545454",
+      btn_primary = "#116bac",
+      btn_primary_hover = "#1688da"
+    ),
+    dark = list(
+      primary = "#116bac",
+      link = "#4e9df8",
+      secondary = "#81af44",
+      secondary_tint = "#323e2e",
+      info = "#4e9df8",
+      success = "#81af44",
+      warning = "#f58320",
+      danger = "#980000",
+      link_hover = "#999999",
+      btn_primary = "#1d82f6",
+      btn_primary_hover = "#4e9df8"
+    )
+  )
+
+    # app_colors <- list(
+    #   light = list(
+    #     primary = "#116bac",
+    #     link = "#116bac",
+    #     secondary = "#5a812f",
+    #     secondary_tint = "#edf2e7",
+    #     info = "#1c4767",
+    #     success = "#5a812f",
+    #     warning = "#f58320",
+    #     danger = "#980000",
+    #     link_hover = "#545454",
+    #     btn_primary = "#116bac",
+    #     btn_primary_hover = "#1688da"
+    #   ),
+    #   dark = list(
+    #     primary = "#116bac",
+    #     link = "#4e9df8",
+    #     secondary = "#81af44",
+    #     secondary_tint = "#323e2e",
+    #     info = "#4e9df8",
+    #     success = "#81af44",
+    #     warning = "#f58320",
+    #     danger = "#980000",
+    #     link_hover = "#999999",
+    #     btn_primary = "#1d82f6",
+    #     btn_primary_hover = "#4e9df8"
+    #   )
+    # )
 
   ## App theme
+  ## Fonts: Open Sans for text (FAO Design System), Fira Code for code;
+  ## both self-hosted in inst/assets/fonts (data-raw/vendor_fonts.R)
   app_theme <- bslib::bs_theme(
     version = 5,
     bootswatch = "yeti",
-    base_font = bslib::font_collection(
-      "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue",
-      "Arial", "Noto Sans", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji",
-      "Segoe UI Symbol","Noto Color Emoji"
-    ),
+    base_font = bslib::font_collection("Open Sans", "Helvetica", "Arial", "sans-serif"),
     code_font = bslib::font_collection(
       "Fira Code", "ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"
     ),
-    heading_font = bslib::font_collection(
-      "Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto",
-      "Helvetica Neue", "Arial", "sans-serif"
-    ),
-    primary = app_primary_color,
-    secondary = app_secondary_color,
+    heading_font = bslib::font_collection("Open Sans", "Helvetica", "Arial", "sans-serif"),
+    primary   = app_colors$light$primary,
+    secondary = app_colors$light$secondary,
+    success   = app_colors$light$success,
+    info      = app_colors$light$info,
+    warning   = app_colors$light$warning,
+    danger    = app_colors$light$danger,
+    "link-color-dark" = app_colors$dark$link
   )
 
   ## Dropdown list for language selection
   language_selector <- div(
-    style = "margin-top: 4px;",
     shinyWidgets::pickerInput(
       inputId = "language",
       label = NULL,
@@ -101,16 +216,46 @@ shiny_run_arenalytics <- function(...) {
     )
   )
 
-  ## Footer div
-  app_footer <- div(
-    class = "container footer text-center",
-    tags$small(
-      "(c) 2026-05 Arenalytics v1.0.0 - Developed by ",
-      tags$strong("Arenalytics Team"),
-      " - for ",
-      tags$a("Open Foris Arena", href = "https://www.openforis.org/arena/", target = "_blank")
+  ## Footer: FAO Design System application footer, FAO Global Goals visual identity
+  ## bottom left, six FAO links in the active language, (c) FAO, then the app credit
+  ## (version from DESCRIPTION)
+  ## (as function because i18n$t() needs to be inside page_navbar())
+  app_footer <- function() {
+    tags$footer(
+      class = "footer footer-app",
+      div(
+        class = "container-fluid",
+        div(
+          class = "row align-items-center",
+          div(class = "footer-logo col-lg-auto", gg_imgs),
+          div(
+            class = "footer-links col-lg",
+            tags$ul(
+              class = "list-inline mb-2",
+              purrr::map2(footer_links$key, footer_links$href, \(key, href) tags$li(
+                class = "list-inline-item",
+                tags$a(href = href[[1]], target = "_blank", !!!as.list(href), i18n$t(key))
+              ))
+            ),
+            tags$small(
+              paste0("Arenalytics v", utils::packageVersion("arenalytics"), " - "),
+              i18n$t(.tr$footer_credit), " ",
+              tags$a("Open Foris Arena", href = "https://www.openforis.org/arena/", target = "_blank")
+            )
+          ),
+          div(
+            class = "col-lg-auto text-lg-end",
+            ## FAO copyright notice, linked to the Terms and Conditions as on fao.org
+            tags$a(
+              class = "copyright", target = "_blank",
+              href = footer_links$href[[2]][[1]], !!!as.list(footer_links$href[[2]]),
+              paste0("\u00a9 FAO\u00a0", format(Sys.Date(), "%Y"))
+            )
+          )
+        )
+      )
     )
-  )
+  }
 
   # app_footer <- div(
   #   class = "container footer text-center",
@@ -138,22 +283,33 @@ shiny_run_arenalytics <- function(...) {
     shiny.i18n::usei18n(i18n),
     tags$head(
       ## JS custom handler to updateTabsetPanel()
-      tags$script(src = "assets/js_activate_tab.js"),
-      tags$script(src = "assets/js_handlers.js"),
+      tags$script(src = paste0("assets/js_activate_tab.js?v=", asset_v)),
+      tags$script(src = paste0("assets/js_handlers.js?v=", asset_v)),
+      ## FAO header and footer: logo, alt texts and links follow the language
+      tags$script(src = paste0("assets/js_brand.js?v=", asset_v)),
       ## GDPR compliant tracker
       tags$head(HTML(
         '<!-- 100% privacy-first analytics -->
         <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>'
       )),
-      ## CSS Style
-      tags$link(rel = "stylesheet", type = "text/css", href = "assets/style.css"),
-      ## Favicons
-      tags$link(rel="icon", type="image/png", href="assets/favicon/favicon-96x96.png", sizes="96x96"),
-      tags$link(rel="icon", type="image/svg+xml", href="assets/favicon/favicon.svg"),
-      tags$link(rel="shortcut icon", href="assets/favicon/favicon.ico"),
-      tags$link(rel="apple-touch-icon", sizes="180x180", href="assets/favicon/apple-touch-icon.png"),
+      ## CSS Style: self-hosted fonts, then app styles
+      tags$link(rel = "stylesheet", type = "text/css", href = paste0("assets/fonts/fonts.css?v=", asset_v)),
+      tags$link(rel = "stylesheet", type = "text/css", href = paste0("assets/style.css?v=", asset_v)),
+      ## App colors as CSS custom properties for style.css (e.g. secondary_tint -> --app-secondary-tint)
+      tags$style(HTML(
+        purrr::imap_chr(c(":root" = "light", "[data-bs-theme=dark]" = "dark"), \(mode, selector) {
+          paste0(
+            selector, "{",
+            paste0("--app-", stringr::str_replace_all(names(app_colors[[mode]]), "_", "-"), ":", unlist(app_colors[[mode]]), ";", collapse = ""),
+            "}"
+          )
+        }) |>
+          paste(collapse = "")
+      )),
+      ## Favicon: FAO emblem (design-system.fao.org); assets/js_brand.js switches to
+      ## the white version when the browser uses a dark theme
+      tags$link(id = "favicon", rel = "icon", type = "image/x-icon", href = "assets/branding/favicon.ico"),
       tags$meta(name="apple-mobile-web-app-title", content="Arena Analytics"),
-      tags$link(rel="manifest", href="assets/favicon/site.webmanifest"),
     ),
     ## HTML Dependency - flag icons used for translation selector
     htmltools::htmlDependency(
@@ -173,13 +329,13 @@ shiny_run_arenalytics <- function(...) {
       window_title = app_window_title,
       theme = app_theme,
       navbar_options = navbar_options(
-        bg = "#f8f9fa",
+        ## Background set in assets/style.css so it follows the light/dark theme
         position = "fixed-top",
-        class = "navbar-expand-sm"
+        class = "navbar-expand-xl" ## menu button below 1200 px: the FAO logo and the two-line title need the width
         ),
       fillable = FALSE, ## Not needed for now, make a tab fill the whole browser, cool for leaflets
       # inverse = FALSE, ## Not working well with yeti, overridden in assets/styles.css
-      footer = app_footer,
+      footer = app_footer(),
 
       ## Panels ------
       nav_spacer(), ## align menu to the right
@@ -204,6 +360,9 @@ shiny_run_arenalytics <- function(...) {
        #icon = icon("info"),
         mod_about_UI("tab_about", i18n = i18n, .tr = .tr)
       ),
+
+      ## Light/dark mode, then language
+      nav_item(bslib::input_dark_mode(id = "dark_mode", mode = "light")),
 
       nav_item(language_selector)
 
@@ -244,6 +403,8 @@ shiny_run_arenalytics <- function(...) {
     ## + Trans modules events ####
     observeEvent(input$language, {
       shiny.i18n::update_lang(language = input$language)
+      ## Footer links, alt texts and <html lang> follow the language
+      session$sendCustomMessage("app-locale", list(lang = lang_iso[[input$language]]))
     })
 
     observeEvent(rv$actions$to_tool, {
