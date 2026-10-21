@@ -114,25 +114,29 @@ mod_tool_UI <- function(id, i18n, .tr){
   ## )
   ## $$$
 
-  ## . + Acc3: Analysis of measures across selected dimensions -----------------
-  ac3 <-  accordion_panel(
-    title = "Run analysis",
-    icon = bsicons::bs_icon("3-circle"),
-    value = ns("ac3"),
+  ## . + Acc2: Select inputs (analysis type, entity, dimensions) -------------
+  ## Segmented switches (status "segment") and dimension chips (status "chip"),
+  ## styled in assets/style.css
+  ac2 <- accordion_panel(
+    title = "Select inputs",
+    icon = bsicons::bs_icon("2-circle"),
+    value = ns("ac_inputs"),
 
-    ## $$$
-    ## Content
-    ## h4("coming soon"),
-
-    ## Entity selector (populated after data loads)
-    radioButtons(
-      inputId = ns("analysis_mode"),
-      label   = strong("Analysis type"),
-      choices = c("Area\u00a0\u00a0\u00a0\u00a0" = "area", "Other measures" = "other"),
-      selected = "other",
-      inline = TRUE
+    ## Area or other measures
+    div(
+      class = "seg-control",
+      shinyWidgets::radioGroupButtons(
+        inputId   = ns("analysis_mode"),
+        status    = "segment",
+        label     = strong("Analysis type"),
+        choices   = c("Area" = "area", "Other measures" = "other"),
+        selected  = "other",
+        size      = "sm",
+        justified = TRUE
+      )
     ),
 
+    ## Entity selector (populated after data loads)
     uiOutput(ns("analysis_entity")),
 
     ## Grouped dimension selector (populated after entity is chosen)
@@ -142,47 +146,80 @@ mod_tool_UI <- function(id, i18n, .tr){
     uiOutput(ns("analysis_strat_text")),
 
     ## Warning when more than 4 dimensions are selected
-    uiOutput(ns("analysis_too_many_dims")),
+    uiOutput(ns("analysis_too_many_dims"))
+  )
+
+  ## . + Acc3: Configure analysis (survey options) and run -------------------
+  ac3 <- accordion_panel(
+    title = "Configure analysis",
+    icon = bsicons::bs_icon("3-circle"),
+    value = ns("ac_config"),
 
     ## Lonely-PSU strategy
-    shinyWidgets::radioGroupButtons(
-      inputId  = ns("analysis_lonely_psu"),
-      status   = "outline-secondary", ## Open Foris green toggles
-      label    = strong("Lonely PSU handling"),
-      choices  = c("Adjust (conservative)" = "adjust",
-                   "Remove (permissive)"   = "remove"),
-      selected = "adjust",
-      size     = "xs",
-      justified = TRUE
-    ),
-
-    ## ++ ##
-    shinyWidgets::radioGroupButtons(
-      inputId  = ns("analysis_compute_mode"),
-      status   = "outline-secondary", ## Open Foris green toggles
-      label    = strong("Computation mode"),
-      choices  = c("Fast" = "fast",
-                   "Safe" = "safe"),
-      selected = "fast",
-      size     = "xs",
-      justified = TRUE
-    ),
     div(
-      class = "text-info",
-      style = "font-size: 0.85em; font-style: italic; margin-top: 0.25rem;",
-      bsicons::bs_icon("info-circle"),
-      " Fast computes all measures together. Safe is slower, but keeps going when some measures fail."
+      class = "seg-control",
+      shinyWidgets::radioGroupButtons(
+        inputId   = ns("analysis_lonely_psu"),
+        status    = "segment",
+        label     = strong("Lonely PSU handling"),
+        choices   = c("Adjust" = "adjust", "Remove" = "remove"),
+        selected  = "adjust",
+        size      = "sm",
+        justified = TRUE
+      )
     ),
-    ## ++ ##
+    ## Note for the selected option
+    purrr::map2(c("adjust", "remove"), list(.tr$cfg_psu_adjust, .tr$cfg_psu_remove), \(value, txt) {
+      conditionalPanel(
+        condition = sprintf("input.analysis_lonely_psu == '%s'", value),
+        ns = ns,
+        ## inner div: the sidebar renders conditional panels with display: contents
+        div(
+          class = "text-info",
+          style = "font-size: 0.85em; font-style: italic; margin-top: 0.25rem; margin-bottom: 1rem;",
+          bsicons::bs_icon("info-circle"), " ", i18n$t(txt)
+        )
+      )
+    }),
 
-    ## Confidence level
+    ## Computation mode
     div(
-      class = "pvalue-select-wrap",
-      selectInput(
-        inputId  = ns("analysis_p_value"),
-        label    = strong("Confidence level"),
-        choices  = c("0.99", "0.95", "0.90", "0.80", "0.68"),
-        selected = "0.95"
+      class = "seg-control",
+      shinyWidgets::radioGroupButtons(
+        inputId   = ns("analysis_compute_mode"),
+        status    = "segment",
+        label     = strong("Computation mode"),
+        choices   = c("Fast" = "fast", "Safe" = "safe"),
+        selected  = "fast",
+        size      = "sm",
+        justified = TRUE
+      )
+    ),
+    ## Note for the selected option
+    purrr::map2(c("fast", "safe"), list(.tr$cfg_cm_fast, .tr$cfg_cm_safe), \(value, txt) {
+      conditionalPanel(
+        condition = sprintf("input.analysis_compute_mode == '%s'", value),
+        ns = ns,
+        ## inner div: the sidebar renders conditional panels with display: contents
+        div(
+          class = "text-info",
+          style = "font-size: 0.85em; font-style: italic; margin-top: 0.25rem; margin-bottom: 1rem;",
+          bsicons::bs_icon("info-circle"), " ", i18n$t(txt)
+        )
+      )
+    }),
+
+    ## Confidence level, values as numbers in text for fct_arenalyse(.pvalue)
+    div(
+      class = "seg-control",
+      shinyWidgets::radioGroupButtons(
+        inputId   = ns("analysis_p_value"),
+        status    = "segment",
+        label     = strong("Confidence level"),
+        choices   = c("99%" = "0.99", "95%" = "0.95", "90%" = "0.90", "80%" = "0.80", "68%" = "0.68"),
+        selected  = "0.95",
+        size      = "sm",
+        justified = TRUE
       )
     ),
 
@@ -198,7 +235,6 @@ mod_tool_UI <- function(id, i18n, .tr){
         )
       )
     )
-    ## $$$
   )
 
   ## + Panels UI ======
@@ -293,8 +329,7 @@ mod_tool_UI <- function(id, i18n, .tr){
           open = TRUE,
           multiple = TRUE,
           ## $$$
-          ## ac2 removed
-          ac1, ac3
+          ac1, ac2, ac3
           ## $$$
         )
       ),
@@ -498,24 +533,26 @@ mod_tool_UI <- function(id, i18n, .tr){
 
           card(
             card_header("Export report"),
+            ## Report format switch and download button on one line
             div(
-              style = "display: flex; gap: 0.75rem; align-items: end; flex-wrap: wrap;",
+              style = "display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;",
               div(
-                style = "min-width: 220px;",
-                selectInput(
-                  ns("analysis_report_format"),
-                  "Report format",
-                  choices = c("Word" = "docx", "HTML" = "html"),
-                  selected = "docx"
+                class = "seg-control seg-inline",
+                style = "width: 180px;",
+                shinyWidgets::radioGroupButtons(
+                  inputId   = ns("analysis_report_format"),
+                  status    = "segment",
+                  label     = NULL,
+                  choices   = c("Word" = "docx", "HTML" = "html"),
+                  selected  = "docx",
+                  size      = "sm",
+                  justified = TRUE
                 )
               ),
-              div(
-                style = "width: fit-content; margin-bottom: 0.5rem;",
-                downloadButton(
-                  ns("analysis_report_download"),
-                  "Download report",
-                  class = "btn-primary btn-sm"
-                )
+              downloadButton(
+                ns("analysis_report_download"),
+                "Download report",
+                class = "btn-primary btn-sm"
               )
             )
           )

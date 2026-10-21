@@ -170,6 +170,26 @@
       "en": "Developed for",
       "fr": "Développé pour",
       "sp": "Desarrollado para"
+    },
+    {
+      "en": "Conservative estimate of standard error.",
+      "fr": "Estimation conservatrice de l'erreur standard.",
+      "sp": "Estimación conservadora del error estándar."
+    },
+    {
+      "en": "Permissive estimate of standard error.",
+      "fr": "Estimation permissive de l'erreur standard.",
+      "sp": "Estimación permisiva del error estándar."
+    },
+    {
+      "en": "Computes all measures together.",
+      "fr": "Calcule toutes les mesures ensemble.",
+      "sp": "Calcula todas las medidas juntas."
+    },
+    {
+      "en": "Computes measures individually, keeps going when some measures fail.",
+      "fr": "Calcule les mesures une par une et continue si certaines échouent.",
+      "sp": "Calcula las medidas una por una y continúa si algunas fallan."
     }
   ]
 }

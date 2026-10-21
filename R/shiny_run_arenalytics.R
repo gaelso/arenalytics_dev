@@ -124,6 +124,7 @@ shiny_run_arenalytics <- function(...) {
   ## - warning, danger: FAO orange and red, FAO-approved, identical in both themes
   ## - link_hover: FAO Design System greys, Gray Dark on light, Gray Medium on dark
   ## - btn_primary, btn_primary_hover: FAO Design System primary button (v3.7.2), white text
+  ## - card_header: FAO Design System Primary Light (v3.7.2)
   app_colors <- list(
     light = list(
       primary = "#116bac",
@@ -136,7 +137,8 @@ shiny_run_arenalytics <- function(...) {
       danger = "#980000",
       link_hover = "#545454",
       btn_primary = "#116bac",
-      btn_primary_hover = "#1688da"
+      btn_primary_hover = "#1688da",
+      card_header = "#e5ecf4"
     ),
     dark = list(
       primary = "#116bac",
@@ -149,7 +151,8 @@ shiny_run_arenalytics <- function(...) {
       danger = "#980000",
       link_hover = "#999999",
       btn_primary = "#1d82f6",
-      btn_primary_hover = "#4e9df8"
+      btn_primary_hover = "#4e9df8",
+      card_header = "#212529"
     )
   )
 

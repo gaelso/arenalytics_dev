@@ -15,15 +15,6 @@
   z-index: 10000 !important;
 }
 
-/* Allow p-value confidence level dropdown to overflow accordion border */
-.accordion-item:has(.pvalue-select-wrap),
-.accordion-body:has(.pvalue-select-wrap) {
-  overflow: visible !important;
-}
-.pvalue-select-wrap .selectize-dropdown {
-  z-index: 10000 !important;
-}
-
 /* Smooth scrolling  */
 html, body {
   height: 100%;
@@ -107,13 +98,20 @@ body > .container-fluid {
 }
 
 /* All cards: 0.5rem border radius */
+/* Card headers: FAO Design System Primary Light (--app-card-header) */
 .card {
+  --bs-card-cap-bg: var(--app-card-header);
   --bs-card-border-radius: 0.5rem;
   --bs-card-inner-border-radius: calc(0.5rem - var(--bs-card-border-width, 1px));
   border-radius: 0.5rem;
 }
 
 /* App colors (light/dark values set as --app-* in the page head, R/shiny_run_arenalytics.R) */
+
+/* Sidebars: no background colour, page background shows through */
+.bslib-sidebar-layout {
+  --bslib-sidebar-bg: transparent;
+}
 
 /* Accordion headers: Open Foris green tint */
 .accordion {
@@ -131,11 +129,82 @@ body > .container-fluid {
   color: var(--app-success) !important;
 }
 
-/* Toggle buttons (shinyWidgets status "outline-secondary"): Open Foris green,
-   lighter green outline and text on dark backgrounds */
-[data-bs-theme=dark] .btn-outline-secondary {
-  --bs-btn-color: var(--app-secondary);
-  --bs-btn-border-color: var(--app-secondary);
+/* Segmented switches (shinyWidgets::radioGroupButtons, status "segment", inside
+   .seg-control): options on a grey track, the selected one raised on the page
+   background. Bootstrap 5 markup: hidden input.btn-check followed by label.btn */
+.seg-control .btn-group-container-sw {
+  gap: 3px;
+  padding: 3px;
+  border-radius: 8px;
+  background-color: var(--bs-secondary-bg);
+}
+.seg-control .btn-group-container-sw .btn.btn-segment {
+  margin-left: 0;
+  border: 0;
+  border-radius: 6px;
+  padding: 0.3rem 0.25rem;
+  background-color: transparent;
+  color: var(--bs-secondary-color);
+  font-weight: 400;
+  white-space: nowrap;
+}
+.seg-control .btn-group-container-sw .btn.btn-segment:hover {
+  color: var(--bs-emphasis-color);
+}
+.seg-control .btn-group-container-sw .btn-check:checked + .btn.btn-segment {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-emphasis-color);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+/* Segmented switch on one line with a button (e.g. report format) */
+.seg-control.seg-inline .form-group {
+  margin-bottom: 0;
+}
+.seg-control.seg-inline .shiny-label-null,
+.seg-control.seg-inline .form-group > br {
+  display: none;
+}
+
+/* Dimension chips (shinyWidgets::checkboxGroupButtons, status "chip", inside
+   .chip-group): rounded, filled Open Foris green with a tick when selected
+   with white text */
+.chip-group .btn-group-container-sw {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 0.75rem;
+}
+.chip-group .btn-group-container-sw .btn.btn-chip {
+  margin: 0;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  background-color: transparent;
+  color: var(--bs-body-color);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+.chip-group .btn-group-container-sw .btn.btn-chip:hover {
+  border-color: var(--app-secondary);
+}
+.chip-group .btn-group-container-sw .btn-check:checked + .btn.btn-chip {
+  border-color: var(--app-secondary);
+  background-color: var(--app-secondary);
+  color: #fff;
+  font-weight: 600;
+}
+.chip-group .btn-chip .check-btn-icon-yes .bi {
+  margin-right: 0.25rem;
+}
+
+/* Keyboard focus ring for segments and chips (focus is on the hidden input) */
+.seg-control .btn-check:focus-visible + .btn.btn-segment,
+.chip-group .btn-check:focus-visible + .btn.btn-chip {
+  outline: 2px solid var(--app-link);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 /* Buttons: FAO Design System primary button (v3.7.2), white text, lighter blue on

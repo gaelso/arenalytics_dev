@@ -108,7 +108,7 @@ mod_tool_server <- function(id, rv) {
       shinyjs::show("panel_insights")
     })
 
-    ## + ACC2: Entities ======
+    ## + ACC2: Select inputs (entities, dimensions) ======
 
     observe({
       req(rv$inputs$data)
@@ -178,26 +178,29 @@ mod_tool_server <- function(id, rv) {
       bu_choices  <- utils_make_grp(.rv = rv, .is_bu = TRUE)
       sub_choices <- utils_make_grp(.rv = rv, .is_bu = FALSE)
 
-      tagList(
+      ## Dimension chips (status "chip", styled in assets/style.css), tick when selected
+      div(
+        class = "chip-group",
         tags$label(class = "form-label", strong("Base-unit dimensions")),
         shinyWidgets::checkboxGroupButtons(
           inputId    = ns("analysis_bu_dims"),
-          status     = "outline-secondary", ## Open Foris green toggles
+          status     = "chip",
           label      = NULL,
           choices    = bu_choices,
           individual = TRUE,
-          size       = "sm"
+          size       = "sm",
+          checkIcon  = list(yes = bsicons::bs_icon("check-lg"))
         ),
         if (input$analysis_mode != "area" && length(sub_choices) > 0) tagList(
-          hr(style = "margin: 0.5rem 0;"),
           tags$label(class = "form-label", strong("Sub-unit dimensions")),
           shinyWidgets::checkboxGroupButtons(
             inputId    = ns("analysis_sub_dims"),
-            status     = "outline-secondary", ## Open Foris green toggles
+            status     = "chip",
             label      = NULL,
             choices    = sub_choices,
             individual = TRUE,
-            size       = "sm"
+            size       = "sm",
+            checkIcon  = list(yes = bsicons::bs_icon("check-lg"))
           )
         )
       )
@@ -240,7 +243,7 @@ mod_tool_server <- function(id, rv) {
       )
     })
 
-    ## + ACC3: Run analysis =======
+    ## + ACC3: Configure and run analysis =======
 
     observeEvent(input$btn_run_analysis, {
       req(rv$inputs$data, input$analysis_sel_entity, rv$analysis$dims_sel)

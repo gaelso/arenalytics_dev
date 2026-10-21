@@ -41,6 +41,10 @@
     ac1_msg_ok = "Data structure OK.",
     ac1_msg_err = "Incorrect data uploaded.",
     ac1_btn = "Read data",
+    cfg_psu_adjust = "Conservative estimate of standard error.",
+    cfg_psu_remove = "Permissive estimate of standard error.",
+    cfg_cm_fast    = "Computes all measures together.",
+    cfg_cm_safe    = "Computes measures individually, keeps going when some measures fail.",
 
     ## FAO footer: link labels as on the fao.org footer
     footer_contact      = "Contact us",
