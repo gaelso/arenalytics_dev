@@ -37,6 +37,8 @@ Imports:
     stringr,
     tibble,
     tidyr,
+    tools,
+    utils,
     zip
 Depends:
     R (>= 4.1.0)
