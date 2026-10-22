@@ -719,7 +719,7 @@
 # summary_params <- list(
 #   survey_label             = ch$surveyLabel %||% "Survey",
 #   report_author            = paste(
-#     "Prepared with Arena Analytics",
+#     "Prepared with ArenaLytics",
 #     "https://openforis-shiny.shinyapps.io/arenalytics/",
 #     format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"),
 #     sep = " | "

@@ -2,7 +2,7 @@
 [![R-CMD-check](https://github.com/openforis/arenalytics/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/openforis/arenalytics/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-# arenalytics
+# ArenaLytics
 
 Analytics and visualizations for OpenForis Arena data
 

@@ -41,7 +41,7 @@ mod_home_UI <- function(id, i18n, .tr){
   card1 <- card(
     class = "feature-card shadow-sm",
     card_body(
-      h3("Arena Analytics", style = "font-weight:700;"),
+      h3("ArenaLytics", style = "font-weight:700;"),
       p(i18n$t(.tr$feat1_p1)),
       p(
         i18n$t(.tr$feat1_p2),

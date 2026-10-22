@@ -10,7 +10,7 @@ shiny_run_arenalytics(...)
 \item{...}{arguments to pass to shinyApp}
 }
 \description{
-function to launch the ShinyApp Arena Analytics. This app helps users to explore
+function to launch the ShinyApp ArenaLytics. This app helps users to explore
 their data from OpenForis Arena, gain insights and develop report-ready figures and
 statistics.
 }

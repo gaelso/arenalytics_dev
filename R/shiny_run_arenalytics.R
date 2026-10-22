@@ -1,6 +1,6 @@
 #' Analytical Dashboard for OpenForis Arena
 #'
-#' @description function to launch the ShinyApp Arena Analytics. This app helps users to explore
+#' @description function to launch the ShinyApp ArenaLytics. This app helps users to explore
 #'              their data from OpenForis Arena, gain insights and develop report-ready figures and
 #'              statistics.
 #'
@@ -99,7 +99,7 @@ shiny_run_arenalytics <- function(...) {
   ## + UI Elements =============================================================
 
   ## App title: FAO logo top left (48 px logo, 12 px clear space above and below), not a
-  ## link (the FAO logo is not the app logo), then the app title on two lines ({Arenalytics},
+  ## link (the FAO logo is not the app logo), then the app title on two lines ({ArenaLytics},
   ## then the description), a link to the home page without link styling, hidden on small screens
   ## (as function because i18n$t() needs to be inside page_navbar())
   app_title <- function() {
@@ -109,13 +109,13 @@ shiny_run_arenalytics <- function(...) {
       tags$a(
         href = "./", ## Send back to home page
         class = "app-title d-none d-lg-flex", ## hidden below 992 px
-        tags$span(class = "app-name", "{Arenalytics}"),
+        tags$span(class = "app-name", "{ArenaLytics}"),
         tags$span(class = "app-subtitle", i18n$t(.tr$app_title))
       )
     )
   }
 
-  app_window_title <- "Arena Dashboard - Open Foris"
+  app_window_title <- "ArenaLytics"
 
   ## App colors, light and dark themes
   ## - primary: FAO Design System blue (links lighter in dark for contrast)
@@ -241,7 +241,7 @@ shiny_run_arenalytics <- function(...) {
               ))
             ),
             tags$small(
-              paste0("Arenalytics v", utils::packageVersion("arenalytics"), " - "),
+              paste0("ArenaLytics v", utils::packageVersion("arenalytics"), " - "),
               i18n$t(.tr$footer_credit), " ",
               tags$a("Open Foris Arena", href = "https://www.openforis.org/arena/", target = "_blank")
             )
@@ -263,8 +263,8 @@ shiny_run_arenalytics <- function(...) {
   # app_footer <- div(
   #   class = "container footer text-center",
   #   tags$small(
-  #     "(c) 2026 Arenalytics v1.0.0 - Developed by ",
-  #     tags$strong("Arenalytics Team"),
+  #     "(c) 2026 ArenaLytics v1.0.0 - Developed by ",
+  #     tags$strong("ArenaLytics Team"),
   #     " - With the support of the ",
   #     tags$a("AIM4Forests programme", href = "https://www.fao.org/in-action/aim4forests/en", target = "_blank")
   #   )
@@ -312,7 +312,7 @@ shiny_run_arenalytics <- function(...) {
       ## Favicon: FAO emblem (design-system.fao.org); assets/js_brand.js switches to
       ## the white version when the browser uses a dark theme
       tags$link(id = "favicon", rel = "icon", type = "image/x-icon", href = "assets/branding/favicon.ico"),
-      tags$meta(name="apple-mobile-web-app-title", content="Arena Analytics"),
+      tags$meta(name="apple-mobile-web-app-title", content="ArenaLytics"),
     ),
     ## HTML Dependency - flag icons used for translation selector
     htmltools::htmlDependency(

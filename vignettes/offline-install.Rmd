@@ -1,8 +1,8 @@
 ---
-title: "Installing arenalytics offline"
+title: "Installing ArenaLytics offline"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Installing arenalytics offline}
+  %\VignetteIndexEntry{Installing ArenaLytics offline}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -14,7 +14,7 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
-This guide explains how to install arenalytics on a machine that has
+This guide explains how to install ArenaLytics on a machine that has
 **no internet connection**. You will need the file
 **`arenalytics_offline_pkgs.zip`** provided by your administrator or a
 colleague (see the section *Preparing the bundle* at the bottom if you
@@ -144,7 +144,7 @@ library(arenalytics)
 shiny_run_arenalytics()
 ```
 
-The arenalytics dashboard should open in your browser.
+The ArenaLytics dashboard should open in your browser.
 
 ------------------------------------------------------------------------
 
@@ -171,7 +171,7 @@ version matches your R version (e.g. Rtools46 for R 4.6.x).
 Run `xcode-select --install` in the Terminal and retry.
 
 **`could not find function "shiny_run_arenalytics"`**\
-The arenalytics package itself was not installed. Repeat Step 3.
+The `arenalytics` package itself was not installed. Repeat Step 3.
 
 ------------------------------------------------------------------------
 

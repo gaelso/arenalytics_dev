@@ -19,7 +19,7 @@ navbar:
       aria-label: GitHub
 
 home:
-  title: "arenalytics — Analytics for Open Foris Arena"
+  title: "ArenaLytics — Analytics for Open Foris Arena"
   description: >
     A Shiny dashboard to explore data from Open Foris Arena,
     gain insights, and develop report-ready figures and statistics.
