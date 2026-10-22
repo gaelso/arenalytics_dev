@@ -38,7 +38,7 @@ before you start.
 
 ------------------------------------------------------------------------
 
-## Step 1 — Create a new R project
+## Step 1: Create a new R project
 
 1.  Open **RStudio**.
 2.  Go to **File › New Project › New Directory › New Project**.
@@ -51,18 +51,18 @@ workspace.
 
 ------------------------------------------------------------------------
 
-## Step 2 — Choose and extract the bundle
+## Step 2: Choose and extract the bundle
 
 Two bundles are available. **Pick one:**
 
 | Bundle | Use when | Speed |
 |---|---|---|
-| **`arenalytics_offline_pkgs_WIN.zip`** | You are on **Windows with R 4.6.x** | Fast — pre-compiled, no Rtools needed |
-| **`arenalytics_offline_pkgs.zip`** | Any other platform (macOS, Linux), or a different R version | Slow — compiled from source, needs a compiler |
+| **`arenalytics_offline_pkgs_WIN.zip`** | You are on **Windows with R 4.6.x** | Fast: pre-compiled, no Rtools needed |
+| **`arenalytics_offline_pkgs.zip`** | Any other platform (macOS, Linux), or a different R version | Slow: compiled from source, needs a compiler |
 
 > **Windows users should use the `_WIN` bundle.** It contains pre-compiled
 > binaries, so installation takes seconds instead of an hour and does **not**
-> require Rtools. It only works on R 4.6.x — check yours with
+> require Rtools. It only works on R 4.6.x; check yours with
 > `R.version.string`.
 
 1.  Copy your chosen zip into the project folder you just created (the same
@@ -82,11 +82,11 @@ can install from.
 
 ------------------------------------------------------------------------
 
-## Step 3 — Install the packages
+## Step 3: Install the packages
 
 Open the RStudio **Console** pane and run the commands for **your** bundle.
 
-### Option A — Windows binary bundle (recommended on Windows)
+### Option A: Windows binary bundle (recommended on Windows)
 
 Install the dependencies first (as pre-compiled binaries), then `arenalytics`
 itself (pure R, from its source tarball). Two explicit steps are used because a
@@ -104,7 +104,7 @@ deps <- c(
 # 1. Dependencies as pre-compiled Windows binaries (no compiler, seconds)
 install.packages(deps, repos = local_repo, type = "win.binary")
 
-# 2. arenalytics itself (pure R — installs instantly, no Rtools)
+# 2. arenalytics itself (pure R, installs instantly, no Rtools)
 install.packages("arenalytics", repos = local_repo, type = "source", dependencies = FALSE)
 ```
 
@@ -112,7 +112,7 @@ install.packages("arenalytics", repos = local_repo, type = "source", dependencie
 > listed explicitly, so R does not need to resolve (and fail to find) optional
 > `Suggests` such as `knitr` and `rmarkdown`.
 
-### Option B — Source bundle (macOS, Linux, other R versions)
+### Option B: Source bundle (macOS, Linux, other R versions)
 
 ```{r install-source}
 local_repo <- paste0("file:///", normalizePath("arenalytics_offline_pkgs", winslash = "/"))
@@ -137,7 +137,7 @@ install.packages(
 
 ------------------------------------------------------------------------
 
-## Step 4 — Launch
+## Step 4: Launch
 
 ```{r launch}
 library(arenalytics)
@@ -152,11 +152,11 @@ The ArenaLytics dashboard should open in your browser.
 
 **`package 'XYZ' is not available`**\
 The package was not included in the bundle. Ask your administrator to
-regenerate the bundle using `inst/extdata/make_offline_bundle.R`.
+regenerate the bundle using `data-raw/make_offline_bundle.R`.
 
 **Installation is very slow / stuck compiling (Windows)**\
 You are using the source bundle. Switch to the Windows binary bundle
-(`arenalytics_offline_pkgs_WIN.zip`, Option A) — it is pre-compiled and
+(`arenalytics_offline_pkgs_WIN.zip`, Option A). It is pre-compiled and
 installs in seconds.
 
 **`package 'XYZ' ... is not available` with the Windows bundle**\
@@ -187,8 +187,8 @@ source("data-raw/make_offline_bundle.R")
 
 This creates, in `data-raw/`:
 
-- `arenalytics_offline_pkgs.zip` — source packages (any platform)
-- `arenalytics_offline_pkgs_WIN.zip` — Windows binaries for R 4.6.x
+- `arenalytics_offline_pkgs.zip`: source packages (any platform)
+- `arenalytics_offline_pkgs_WIN.zip`: Windows binaries for R 4.6.x
 
 To target a different R version for the Windows bundle, change the `win_ver`
 variable near the top of the script. Share the appropriate bundle along with
