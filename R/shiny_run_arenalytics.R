@@ -372,8 +372,14 @@ shiny_run_arenalytics <- function(...) {
       insights = reactiveValues(),
       # ct       = reactiveValues(),
       analysis = reactiveValues(),
-      actions  = reactiveValues()
+      actions  = reactiveValues(),
+      ui       = reactiveValues(dark_mode = "light")
     )
+
+    ## Light or dark mode from the navbar toggle, for outputs drawn in R (ggplot figures)
+    observeEvent(input$dark_mode, {
+      rv$ui$dark_mode <- input$dark_mode
+    })
 
     ## NOT USED - Save language value to show/hide entire divs with shinyjs rather than long i18n translators
     # r_lang <- reactive({ input$language })

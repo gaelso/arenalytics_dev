@@ -420,6 +420,16 @@ mod_tool_UI <- function(id, i18n, .tr){
                 "Measure",
                 choices = NULL,
                 selected = NULL
+              ),
+              ## Means or totals, for both the results table and the figure
+              div(
+                id = ns("analysis_table_source_wrap"),
+                selectInput(
+                  ns("analysis_table_source"),
+                  "Estimates",
+                  choices = c("Means (per ha)" = "MEANS", "Totals" = "TOTALS"),
+                  selected = "MEANS"
+                )
               )
             ),
             uiOutput(ns("analysis_extra_filters"))
@@ -428,19 +438,6 @@ mod_tool_UI <- function(id, i18n, .tr){
           card(
             full_screen = TRUE,
             card_header("Results table"),
-            layout_column_wrap(
-              width = "220px",
-              fill  = FALSE,
-              div(
-                id = ns("analysis_table_source_wrap"),
-                selectInput(
-                  ns("analysis_table_source"),
-                  "Table source",
-                  choices = c("Means (per ha)" = "MEANS", "Totals" = "TOTALS"),
-                  selected = "MEANS"
-                )
-              )
-            ),
             div(
               style = "display: flex; gap: 0.75rem; align-items: center; margin: 0.75rem 0;",
               actionButton(
@@ -500,35 +497,39 @@ mod_tool_UI <- function(id, i18n, .tr){
             uiOutput(ns("analysis_plot_guidance"))
           ),
 
-          div(
-            id = ns("analysis_means_card"),
-            card(
-              full_screen  = TRUE,
-              card_header("Means (per ha)"),
-              div(
-                style = "width: fit-content; margin-bottom: 0.75rem;",
-                downloadButton(
-                  ns("analysis_plot_means_download"),
-                  "Download means plot (PNG)",
-                  class = "btn-primary btn-sm"
-                )
-              ),
-              plotOutput(ns("analysis_plot_means"), height = "400px")
-            )
-          ),
-
+          ## Figure of the selected estimates (means or totals)
           card(
             full_screen  = TRUE,
-            card_header("Totals"),
+            card_header(textOutput(ns("analysis_plot_title"), inline = TRUE)),
+            ## Light or dark PNG, then download (the report always uses light)
             div(
-              style = "width: fit-content; margin-bottom: 0.75rem;",
+              style = "display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.75rem;",
+              div(
+                class = "seg-control seg-inline",
+                style = "width: 160px;",
+                shinyWidgets::radioGroupButtons(
+                  inputId   = ns("plot_download_theme"),
+                  status    = "segment",
+                  label     = NULL,
+                  choices   = c("Light" = "light", "Dark" = "dark"),
+                  selected  = "light",
+                  size      = "sm",
+                  justified = TRUE
+                )
+              ),
               downloadButton(
-                ns("analysis_plot_totals_download"),
-                "Download totals plot (PNG)",
+                ns("analysis_plot_download"),
+                "Download figure (PNG)",
                 class = "btn-primary btn-sm"
               )
             ),
-            plotOutput(ns("analysis_plot_totals"), height = "400px")
+            ## Light and dark versions stacked: CSS shows the dark one on top in dark
+            ## mode, so the theme toggle is instant (no server redraw)
+            div(
+              class = "plot-themed",
+              plotOutput(ns("analysis_plot_light"), height = "400px"),
+              div(class = "plot-themed-dark", plotOutput(ns("analysis_plot_dark"), height = "400px"))
+            )
           ),
 
           card(

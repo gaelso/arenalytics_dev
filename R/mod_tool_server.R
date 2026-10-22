@@ -625,7 +625,6 @@ mod_tool_server <- function(id, rv) {
       is_area <- identical(rv$analysis$mode, "area")
 
       shinyjs::toggle("analysis_table_source_wrap", condition = !is_area)
-      shinyjs::toggle("analysis_means_card", condition = !is_area)
 
       updateSelectInput(
         session,
@@ -851,14 +850,20 @@ mod_tool_server <- function(id, rv) {
     observe({
       req(rv$analysis$result)
       ok <- isTRUE(plot_validation()$ok)
-      shinyjs::toggleState("analysis_plot_means_download",  condition = ok)
-      shinyjs::toggleState("analysis_plot_totals_download", condition = ok)
+      shinyjs::toggleState("analysis_plot_download",   condition = ok)
       shinyjs::toggleState("analysis_report_download",      condition = ok)
     })
 
     ## + Plots ======
 
-    ## Bar plots of MEANS and TOTALS, shared by the panel, PNG downloads and report
+    ## Bar plots of MEANS and TOTALS in a light and a dark version: the panel stacks
+    ## both and shows the one of the current theme with CSS, the PNG download uses
+    ## the one chosen next to its button, and the report always the light one
+    plot_colors <- list(
+      light = list(bg = "white",   text = "grey20",  grid = "grey92",  bar = "grey70", bar_line = "grey30", errbar = "black"),
+      dark  = list(bg = "#222222", text = "#dee2e6", grid = "#3a3f44", bar = "grey45", bar_line = "grey75", errbar = "#dee2e6")
+    )
+
     analysis_plots <- reactive({
       req(rv$analysis$result, input$plot_dim, input$analysis_sel_measure)
       validate(need(plot_validation()$ok, plot_validation()$message))
@@ -897,78 +902,96 @@ mod_tool_server <- function(id, rv) {
       } else {
         ggplot2::aes(x = .data[[x_dim]], y = .data[[measure$name]])
       }
-      geom_col_layer <- if (use_fill) {
-        ggplot2::geom_col(position = bar_pos, col = "grey30")
-      } else {
-        ggplot2::geom_col(position = bar_pos, col = "grey30", fill = "grey70")
-      }
 
-      purrr::map(c(MEANS = "MEANS", TOTALS = "TOTALS"), \(src) {
-        df <- analysis_filtered()[[src]]
+      purrr::map(plot_colors, \(pal) {
+        purrr::map(c(MEANS = "MEANS", TOTALS = "TOTALS"), \(src) {
+          df <- analysis_filtered()[[src]]
 
-        plot_title <- if (src == "MEANS") {
-          if (!is.null(unit_txt)) paste0("Aggregated means (", unit_txt, "/ha)") else "Aggregated means"
-        } else {
-          if (!is.null(unit_txt)) paste0("Aggregated totals (", unit_txt, ")") else "Aggregated totals"
-        }
+          plot_title <- if (src == "MEANS") {
+            if (!is.null(unit_txt)) paste0("Aggregated means (", unit_txt, "/ha)") else "Aggregated means"
+          } else {
+            if (!is.null(unit_txt)) paste0("Aggregated totals (", unit_txt, ")") else "Aggregated totals"
+          }
 
-        p <- ggplot2::ggplot(df, base_aes) +
-          geom_col_layer +
-          ggplot2::labs(x = x_label, y = y_label, fill = fill_label, title = plot_title) +
-          ggplot2::theme_minimal() +
-          ggplot2::theme(
-            axis.text.x = ggplot2::element_text(size = 12, angle = 45, hjust = 1),
-            axis.text.y = ggplot2::element_text(size = 12),
-            axis.title.x = ggplot2::element_text(size = 14, margin = ggplot2::margin(t = 10)),
-            axis.title.y = ggplot2::element_text(size = 14, margin = ggplot2::margin(r = 10)),
-            legend.title = ggplot2::element_text(size = 13),
-            legend.text = ggplot2::element_text(size = 11),
-            strip.text = ggplot2::element_text(size = 12, face = "bold")
-          ) +
-          ggplot2::scale_x_discrete(
-            labels = tick_labels,
-            # Reverse order when flipped so first item appears at top (not bottom)
-            limits = if (flip) rev else NULL
-          )
+          p <- ggplot2::ggplot(df, base_aes) +
+            (if (use_fill) {
+              ggplot2::geom_col(position = bar_pos, col = pal$bar_line)
+            } else {
+              ggplot2::geom_col(position = bar_pos, col = pal$bar_line, fill = pal$bar)
+            }) +
+            ggplot2::labs(x = x_label, y = y_label, fill = fill_label, title = plot_title) +
+            ggplot2::theme_minimal() +
+            ggplot2::theme(
+              plot.background  = ggplot2::element_rect(fill = pal$bg, colour = NA),
+              panel.grid       = ggplot2::element_line(colour = pal$grid),
+              text             = ggplot2::element_text(colour = pal$text),
+              axis.text.x = ggplot2::element_text(size = 12, angle = 45, hjust = 1, colour = pal$text),
+              axis.text.y = ggplot2::element_text(size = 12, colour = pal$text),
+              axis.title.x = ggplot2::element_text(size = 14, margin = ggplot2::margin(t = 10)),
+              axis.title.y = ggplot2::element_text(size = 14, margin = ggplot2::margin(r = 10)),
+              legend.title = ggplot2::element_text(size = 13),
+              legend.text = ggplot2::element_text(size = 11),
+              strip.text = ggplot2::element_text(size = 12, face = "bold", colour = pal$text)
+            ) +
+            ggplot2::scale_x_discrete(
+              labels = tick_labels,
+              # Reverse order when flipped so first item appears at top (not bottom)
+              limits = if (flip) rev else NULL
+            )
 
-        if (use_fill) {
-          p <- p + ggplot2::scale_fill_discrete(labels = tick_labels)
-        }
+          if (use_fill) {
+            p <- p + ggplot2::scale_fill_discrete(labels = tick_labels)
+          }
 
-        if (isTRUE(input$plot_errbar) && all(c(low_col, upp_col) %in% names(df))) {
-          p <- p + ggplot2::geom_errorbar(
-            ggplot2::aes(ymin = .data[[low_col]], ymax = .data[[upp_col]]),
-            position = bar_pos,
-            width    = 0.2,
-            col = "black"
-          )
-        }
+          if (isTRUE(input$plot_errbar) && all(c(low_col, upp_col) %in% names(df))) {
+            p <- p + ggplot2::geom_errorbar(
+              ggplot2::aes(ymin = .data[[low_col]], ymax = .data[[upp_col]]),
+              position = bar_pos,
+              width    = 0.2,
+              col      = pal$errbar
+            )
+          }
 
-        if (use_facet) {
-          p <- p + ggplot2::facet_wrap(
-            ggplot2::vars(!!rlang::sym(facet_col)),
-            labeller = ggplot2::labeller(.default = ggplot2::label_wrap_gen(width = 18))
-          )
-        }
+          if (use_facet) {
+            p <- p + ggplot2::facet_wrap(
+              ggplot2::vars(!!rlang::sym(facet_col)),
+              labeller = ggplot2::labeller(.default = ggplot2::label_wrap_gen(width = 18))
+            )
+          }
 
-        if (flip) {
-          p <- p + ggplot2::coord_flip()
-        }
+          if (flip) {
+            p <- p + ggplot2::coord_flip()
+          }
 
-        if (isTRUE(input$plot_hide_legend)) {
-          p <- p + ggplot2::theme(legend.position = "none")
-        }
+          if (isTRUE(input$plot_hide_legend)) {
+            p <- p + ggplot2::theme(legend.position = "none")
+          }
 
-        if (src == "TOTALS") {
-          p <- p + ggplot2::scale_y_continuous(labels = scales::comma)
-        }
+          if (src == "TOTALS") {
+            p <- p + ggplot2::scale_y_continuous(labels = scales::comma)
+          }
 
-        p
+          p
+        })
       })
     })
 
-    output$analysis_plot_means  <- renderPlot(analysis_plots()$MEANS)
-    output$analysis_plot_totals <- renderPlot(analysis_plots()$TOTALS)
+    ## One figure for the selected estimates (means or totals), in the current theme
+    output$analysis_plot_title <- renderText({
+      if (identical(input$analysis_table_source, "TOTALS")) "Totals" else "Means (per ha)"
+    })
+
+    ## Both versions are drawn and stacked in the page (.plot-themed in style.css),
+    ## so switching theme only changes CSS and needs no redraw
+    output$analysis_plot_light <- renderPlot({
+      req(input$analysis_table_source)
+      analysis_plots()$light[[input$analysis_table_source]]
+    }, bg = "transparent")
+
+    output$analysis_plot_dark <- renderPlot({
+      req(input$analysis_table_source)
+      analysis_plots()$dark[[input$analysis_table_source]]
+    }, bg = "transparent")
 
     ## + Download file names ======
 
@@ -993,17 +1016,19 @@ mod_tool_server <- function(id, rv) {
 
     ## + Plot PNG downloads ======
 
-    output$analysis_plot_means_download <- downloadHandler(
-      filename = function() paste0(download_prefix(), "fig-mean.png"),
+    ## Figure of the selected estimates, light or dark version (plot_download_theme)
+    output$analysis_plot_download <- downloadHandler(
+      filename = function() {
+        paste0(
+          download_prefix(),
+          if (identical(input$analysis_table_source, "TOTALS")) "fig-total" else "fig-mean",
+          if (identical(input$plot_download_theme, "dark")) "-dark" else "",
+          ".png"
+        )
+      },
       content = function(file) {
-        ggplot2::ggsave(filename = file, plot = analysis_plots()$MEANS, width = 10, height = 6, dpi = 300)
-      }
-    )
-
-    output$analysis_plot_totals_download <- downloadHandler(
-      filename = function() paste0(download_prefix(), "fig-total.png"),
-      content = function(file) {
-        ggplot2::ggsave(filename = file, plot = analysis_plots()$TOTALS, width = 10, height = 6, dpi = 300)
+        plot_theme <- input$plot_download_theme %||% "light"
+        ggplot2::ggsave(filename = file, plot = analysis_plots()[[plot_theme]][[input$analysis_table_source %||% "MEANS"]], width = 10, height = 6, dpi = 300)
       }
     )
 
@@ -1052,9 +1077,9 @@ mod_tool_server <- function(id, rv) {
 
         ## Save plots and table
         if (!is_area) {
-          ggplot2::ggsave(means_plot_file, plot = analysis_plots()$MEANS, width = 10, height = 6, dpi = 300)
+          ggplot2::ggsave(means_plot_file, plot = analysis_plots()$light$MEANS, width = 10, height = 6, dpi = 300)
         }
-        ggplot2::ggsave(totals_plot_file, plot = analysis_plots()$TOTALS, width = 10, height = 6, dpi = 300)
+        ggplot2::ggsave(totals_plot_file, plot = analysis_plots()$light$TOTALS, width = 10, height = 6, dpi = 300)
         utils::write.csv(analysis_table(), table_file, row.names = FALSE)
 
         ## Report parameters

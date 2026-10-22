@@ -20,7 +20,8 @@
 #   inputs   = list(),
 #   insights = list(),
 #   analysis = list(),
-#   actions  = list()
+#   actions  = list(),
+#   ui       = list(dark_mode = "light") ## "dark" to check the dark figures
 # )
 
 # input <- list()
@@ -150,6 +151,7 @@
 # input$plot_flip             <- FALSE
 # input$plot_wrap_labels      <- TRUE
 # input$plot_hide_legend      <- FALSE
+# input$plot_download_theme   <- "light" ## "dark" for the dark PNG
 
 # ## Dimension filters: input$filter_dim__<dim> <- c("class label", ...); NULL = no filter
 # # input$filter_dim__tree_health <- c("Healthy")
@@ -560,6 +562,12 @@
 # ## Unit for plot titles
 # unit_txt <- if (!is.na(measure$unit) && nzchar(measure$unit)) measure$unit else NULL
 
+# ## Light and dark versions: the panel shows the current theme, exports use light
+# plot_colors <- list(
+#   light = list(bg = "white",   text = "grey20",  grid = "grey92",  bar = "grey70", bar_line = "grey30", errbar = "black"),
+#   dark  = list(bg = "#222222", text = "#dee2e6", grid = "#3a3f44", bar = "grey45", bar_line = "grey75", errbar = "#dee2e6")
+# )
+
 # ## Bars: dodged and colored by fill dim, or plain grey
 # bar_pos <- if (use_fill) ggplot2::position_dodge(width = 0.9, preserve = "single") else "identity"
 # base_aes <- if (use_fill) {
@@ -567,77 +575,81 @@
 # } else {
 #   ggplot2::aes(x = .data[[x_dim]], y = .data[[measure$name]])
 # }
-# geom_col_layer <- if (use_fill) {
-#   ggplot2::geom_col(position = bar_pos, col = "grey30")
-# } else {
-#   ggplot2::geom_col(position = bar_pos, col = "grey30", fill = "grey70")
-# }
 
-# analysis_plots <- purrr::map(c(MEANS = "MEANS", TOTALS = "TOTALS"), \(src) {
-#   df <- analysis_filtered[[src]]
+# analysis_plots <- purrr::map(plot_colors, \(pal) {
+#   purrr::map(c(MEANS = "MEANS", TOTALS = "TOTALS"), \(src) {
+#     df <- analysis_filtered[[src]]
 
-#   plot_title <- if (src == "MEANS") {
-#     if (!is.null(unit_txt)) paste0("Aggregated means (", unit_txt, "/ha)") else "Aggregated means"
-#   } else {
-#     if (!is.null(unit_txt)) paste0("Aggregated totals (", unit_txt, ")") else "Aggregated totals"
-#   }
+#     plot_title <- if (src == "MEANS") {
+#       if (!is.null(unit_txt)) paste0("Aggregated means (", unit_txt, "/ha)") else "Aggregated means"
+#     } else {
+#       if (!is.null(unit_txt)) paste0("Aggregated totals (", unit_txt, ")") else "Aggregated totals"
+#     }
 
-#   p <- ggplot2::ggplot(df, base_aes) +
-#     geom_col_layer +
-#     ggplot2::labs(x = x_label, y = y_label, fill = fill_label, title = plot_title) +
-#     ggplot2::theme_minimal() +
-#     ggplot2::theme(
-#       axis.text.x = ggplot2::element_text(size = 12, angle = 45, hjust = 1),
-#       axis.text.y = ggplot2::element_text(size = 12),
-#       axis.title.x = ggplot2::element_text(size = 14, margin = ggplot2::margin(t = 10)),
-#       axis.title.y = ggplot2::element_text(size = 14, margin = ggplot2::margin(r = 10)),
-#       legend.title = ggplot2::element_text(size = 13),
-#       legend.text = ggplot2::element_text(size = 11),
-#       strip.text = ggplot2::element_text(size = 12, face = "bold")
-#     ) +
-#     ggplot2::scale_x_discrete(
-#       labels = tick_labels,
-#       # Reverse order when flipped so first item appears at top (not bottom)
-#       limits = if (flip) rev else NULL
-#     )
+#     p <- ggplot2::ggplot(df, base_aes) +
+#       (if (use_fill) {
+#         ggplot2::geom_col(position = bar_pos, col = pal$bar_line)
+#       } else {
+#         ggplot2::geom_col(position = bar_pos, col = pal$bar_line, fill = pal$bar)
+#       }) +
+#       ggplot2::labs(x = x_label, y = y_label, fill = fill_label, title = plot_title) +
+#       ggplot2::theme_minimal() +
+#       ggplot2::theme(
+#         plot.background  = ggplot2::element_rect(fill = pal$bg, colour = NA),
+#         panel.grid       = ggplot2::element_line(colour = pal$grid),
+#         text             = ggplot2::element_text(colour = pal$text),
+#         axis.text.x = ggplot2::element_text(size = 12, angle = 45, hjust = 1, colour = pal$text),
+#         axis.text.y = ggplot2::element_text(size = 12, colour = pal$text),
+#         axis.title.x = ggplot2::element_text(size = 14, margin = ggplot2::margin(t = 10)),
+#         axis.title.y = ggplot2::element_text(size = 14, margin = ggplot2::margin(r = 10)),
+#         legend.title = ggplot2::element_text(size = 13),
+#         legend.text = ggplot2::element_text(size = 11),
+#         strip.text = ggplot2::element_text(size = 12, face = "bold", colour = pal$text)
+#       ) +
+#       ggplot2::scale_x_discrete(
+#         labels = tick_labels,
+#         # Reverse order when flipped so first item appears at top (not bottom)
+#         limits = if (flip) rev else NULL
+#       )
 
-#   if (use_fill) {
-#     p <- p + ggplot2::scale_fill_discrete(labels = tick_labels)
-#   }
+#     if (use_fill) {
+#       p <- p + ggplot2::scale_fill_discrete(labels = tick_labels)
+#     }
 
-#   if (isTRUE(input$plot_errbar) && all(c(low_col, upp_col) %in% names(df))) {
-#     p <- p + ggplot2::geom_errorbar(
-#       ggplot2::aes(ymin = .data[[low_col]], ymax = .data[[upp_col]]),
-#       position = bar_pos,
-#       width    = 0.2,
-#       col = "black"
-#     )
-#   }
+#     if (isTRUE(input$plot_errbar) && all(c(low_col, upp_col) %in% names(df))) {
+#       p <- p + ggplot2::geom_errorbar(
+#         ggplot2::aes(ymin = .data[[low_col]], ymax = .data[[upp_col]]),
+#         position = bar_pos,
+#         width    = 0.2,
+#         col      = pal$errbar
+#       )
+#     }
 
-#   if (use_facet) {
-#     p <- p + ggplot2::facet_wrap(
-#       ggplot2::vars(!!rlang::sym(facet_col)),
-#       labeller = ggplot2::labeller(.default = ggplot2::label_wrap_gen(width = 18))
-#     )
-#   }
+#     if (use_facet) {
+#       p <- p + ggplot2::facet_wrap(
+#         ggplot2::vars(!!rlang::sym(facet_col)),
+#         labeller = ggplot2::labeller(.default = ggplot2::label_wrap_gen(width = 18))
+#       )
+#     }
 
-#   if (flip) {
-#     p <- p + ggplot2::coord_flip()
-#   }
+#     if (flip) {
+#       p <- p + ggplot2::coord_flip()
+#     }
 
-#   if (isTRUE(input$plot_hide_legend)) {
-#     p <- p + ggplot2::theme(legend.position = "none")
-#   }
+#     if (isTRUE(input$plot_hide_legend)) {
+#       p <- p + ggplot2::theme(legend.position = "none")
+#     }
 
-#   if (src == "TOTALS") {
-#     p <- p + ggplot2::scale_y_continuous(labels = scales::comma)
-#   }
+#     if (src == "TOTALS") {
+#       p <- p + ggplot2::scale_y_continuous(labels = scales::comma)
+#     }
 
-#   p
+#     p
+#   })
 # })
 
-# if (!is_area) analysis_plots$MEANS
-# analysis_plots$TOTALS
+# ## Figure of the selected estimates, in the current theme
+# analysis_plots[[rv$ui$dark_mode]][[input$analysis_table_source]]
 
 # ## + Download file names ======
 
@@ -662,12 +674,12 @@
 #   if (!is_area) {
 #     ggplot2::ggsave(
 #       file.path(out_dir, paste0(download_prefix, "fig-mean.png")),
-#       plot = analysis_plots$MEANS, width = 10, height = 6, dpi = 300
+#       plot = analysis_plots$light$MEANS, width = 10, height = 6, dpi = 300
 #     )
 #   }
 #   ggplot2::ggsave(
 #     file.path(out_dir, paste0(download_prefix, "fig-total.png")),
-#     plot = analysis_plots$TOTALS, width = 10, height = 6, dpi = 300
+#     plot = analysis_plots$light$TOTALS, width = 10, height = 6, dpi = 300
 #   )
 # }
 
@@ -757,9 +769,9 @@
 #   file.copy(system.file("quarto", "analysis-report.qmd", package = "arenalytics"), qmd_file, overwrite = TRUE)
 
 #   if (!is_area) {
-#     ggplot2::ggsave(means_plot_file, plot = analysis_plots$MEANS, width = 10, height = 6, dpi = 300)
+#     ggplot2::ggsave(means_plot_file, plot = analysis_plots$light$MEANS, width = 10, height = 6, dpi = 300)
 #   }
-#   ggplot2::ggsave(totals_plot_file, plot = analysis_plots$TOTALS, width = 10, height = 6, dpi = 300)
+#   ggplot2::ggsave(totals_plot_file, plot = analysis_plots$light$TOTALS, width = 10, height = 6, dpi = 300)
 #   utils::write.csv(analysis_table, table_file, row.names = FALSE)
 
 #   rendered_file <- file.path(

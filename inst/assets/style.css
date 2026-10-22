@@ -625,3 +625,88 @@ body > .container-fluid {
 .about-dev-month ul {
   margin: 0.35rem 0 0.75rem;
 }
+
+/* Specific CSS - Inputs in dark mode ------ */
+
+/* Language selector (shinyWidgets::pickerInput, Bootstrap 'btn-light', which stays
+   light in dark mode): page colours in dark mode */
+[data-bs-theme=dark] .bootstrap-select > .dropdown-toggle.btn-light {
+  --bs-btn-color: var(--bs-body-color);
+  --bs-btn-bg: var(--bs-tertiary-bg);
+  --bs-btn-border-color: var(--bs-border-color);
+  --bs-btn-hover-color: var(--bs-emphasis-color);
+  --bs-btn-hover-bg: var(--bs-secondary-bg);
+  --bs-btn-hover-border-color: var(--bs-border-color);
+  --bs-btn-active-color: var(--bs-emphasis-color);
+  --bs-btn-active-bg: var(--bs-secondary-bg);
+  --bs-btn-active-border-color: var(--bs-border-color);
+  border-color: var(--bs-border-color);
+}
+
+/* Dimension filters (shinyWidgets::virtualSelectInput): the widget injects fixed light
+   colours after style.css, hence the [data-bs-theme] prefix (always set on <html> by
+   bslib::input_dark_mode()) to win on specificity. Colours follow the Bootstrap theme
+   variables, so light mode looks as before and dark mode adapts. The dropdown is
+   moved to <body> (dropboxWrapper = "body"), so rules are not scoped to the filters. */
+[data-bs-theme] .vscomp-wrapper,
+[data-bs-theme] .vscomp-dropbox,
+[data-bs-theme] .vscomp-option {
+  color: var(--bs-body-color);
+}
+[data-bs-theme] .vscomp-toggle-button {
+  background-color: var(--bs-body-bg);
+  border-color: var(--bs-border-color);
+}
+[data-bs-theme] .vscomp-arrow::after {
+  border-right-color: var(--bs-body-color);
+  border-bottom-color: var(--bs-body-color);
+}
+[data-bs-theme] .vscomp-wrapper.show-value-as-tags .vscomp-value-tag {
+  border-color: var(--bs-border-color);
+}
+[data-bs-theme] .vscomp-clear-button:hover {
+  background: var(--bs-secondary-bg);
+}
+[data-bs-theme] .vscomp-clear-icon:hover::before,
+[data-bs-theme] .vscomp-clear-icon:hover::after,
+[data-bs-theme] .vscomp-clear-button:hover .vscomp-clear-icon::before,
+[data-bs-theme] .vscomp-clear-button:hover .vscomp-clear-icon::after {
+  background-color: var(--bs-body-color);
+}
+[data-bs-theme] .vscomp-dropbox,
+[data-bs-theme] .vscomp-dropbox-close-button {
+  background-color: var(--bs-body-bg);
+}
+[data-bs-theme] .vscomp-search-container {
+  border-bottom-color: var(--bs-border-color);
+}
+[data-bs-theme] .vscomp-option.selected {
+  background-color: var(--bs-tertiary-bg);
+}
+[data-bs-theme] .vscomp-option.focused {
+  background-color: var(--bs-secondary-bg);
+}
+/* Ticks: Open Foris green, like the dimension chips */
+[data-bs-theme] .vscomp-wrapper .checkbox-icon.checked::after,
+[data-bs-theme] .vscomp-wrapper.multiple .vscomp-option.selected .checkbox-icon::after {
+  border-color: var(--app-secondary);
+  border-left-color: transparent;
+  border-top-color: transparent;
+}
+
+/* Figure in light and dark versions (R/mod_tool_UI.R, .plot-themed): the dark plot
+   output is stacked on the light one and shown only in dark mode, so the theme
+   toggle is instant. Its opaque background hides the light layer underneath,
+   including validation messages that both outputs show. */
+.plot-themed {
+  position: relative;
+}
+.plot-themed-dark {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  background-color: var(--bs-body-bg);
+}
+[data-bs-theme=dark] .plot-themed-dark {
+  visibility: visible;
+}
