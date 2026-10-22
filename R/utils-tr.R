@@ -18,6 +18,7 @@
     hero_title = "Turn field data into report-ready figures and statistics",
     hero_txt = "Create a survey in Open Foris Arena, collect the data and come here to explore it, gain insights and produce reliable estimates.",
     hero_btn = "Get Started",
+    hero_photo_credit = "Tropical rainforest, Kaeng Krung National Park, Thailand (Photo: Gael Sola)",
     feat1_p1 = "A dashboard shinyApp, ArenaLytics, shipped as a R package, unlocking the powerful statistics of R with the visual convenience of dashboards.",
     feat1_p2 = "For more details about the app developement or if any issue, find us on:",
     feat1_p3 = "Start playing with your data in the Tool section!",

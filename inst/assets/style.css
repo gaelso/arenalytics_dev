@@ -425,6 +425,17 @@ body > .container-fluid {
   border-radius: 1.5rem;
 }
 
+/* Photo credit under the hero image (FAOSTYLE: credit line adjacent to the photo) */
+.hero-figure {
+  margin: 0;
+}
+.hero-credit {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  text-align: right;
+  color: var(--bs-secondary-color);
+}
+
 .feature-card {
   transition: all 0.2s ease-in-out;
   border-radius: 0.5rem;

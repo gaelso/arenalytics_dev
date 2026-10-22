@@ -221,7 +221,7 @@ mod_about_UI <- function(id, i18n, .tr){
         tags$dd("MIT, \u00a9 2026 FAO"),
         tags$dt(i18n$t(.tr$about_pkg_authors)),
         tags$dd(
-          "Ga\u00ebl Sola (", span(i18n$t(.tr$about_pkg_maintainer), .noWS = c("outside", "inside")), "), ",
+          "Gael Sola (", span(i18n$t(.tr$about_pkg_maintainer), .noWS = c("outside", "inside")), "), ",
           "Lauri Vesa, Javier Garcia-Perez, Anibal Cuchetti, Jimena Saucedo Miranda"
         ),
         tags$dt(i18n$t(.tr$about_pkg_source)),

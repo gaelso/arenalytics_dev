@@ -16,9 +16,14 @@ mod_home_UI <- function(id, i18n, .tr){
   ## image first on mobile
   hero_img <- div(
     class = "col-md-6 order-1 order-md-2 text-center",
-    tags$img(
-      src = "assets/landing-img.jpg",
-      class = "img-fluid hero-image shadow-sm"
+    tags$figure(
+      class = "hero-figure",
+      tags$img(
+        src = "assets/landing-img.jpg",
+        class = "img-fluid hero-image shadow-sm",
+        alt = "Tropical rainforest, Kaeng Krung National Park, Thailand"
+      ),
+      tags$figcaption(class = "hero-credit", i18n$t(.tr$hero_photo_credit))
     ),
     style = "margin-bottom: 24px;"
   )

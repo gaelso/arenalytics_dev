@@ -3,7 +3,7 @@ Title: Analytical Dashboard for Open Foris Arena
 Version: 1.0.0
 Authors@R: 
     c(
-      person("Gaël", "Sola", email = "gaelsola.pro@gmail.com", role = c("aut", "cre")),
+      person("Gael", "Sola", email = "gaelsola.pro@gmail.com", role = c("aut", "cre")),
       person("Lauri", "Vesa", role = c("aut")),
       person("Javier", "Garcia-Perez", role = c("aut")),
       person("Anibal", "Cuchetti", role = c("aut")),
