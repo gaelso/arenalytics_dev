@@ -1,0 +1,112 @@
+---
+title: "ArenaLytics user guide"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ArenaLytics user guide}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+This guide summarizes the ArenaLytics section of the
+[Open Foris Arena user manual](https://docs.google.com/document/d/1GWerrExvbdT5oOOlwdkE9pptK4pVbQxwtgaSNPasmKA/view?tab=t.0#heading=h.5t6dmkawvkp9).
+Refer to the manual for full details.
+
+## What ArenaLytics does
+
+ArenaLytics is an analytical dashboard for data collected and processed with
+Open Foris Arena. It was developed for national forest inventories and other
+sample-based surveys, where users need estimates such as biomass, tree density,
+volume or carbon stocks across many reporting domains.
+
+Users select the measures, dimensions and filters they need, and the dashboard
+computes means, totals and their sampling errors on demand. There is no need to
+define every output in advance.
+
+## Workflow
+
+ArenaLytics is the last step of a four-step workflow:
+
+1. Design the survey in Open Foris Arena: entities, attributes, categories,
+   taxonomies and the sampling design.
+2. Collect the data with Arena Mobile, online or offline, or with the Arena web
+   form.
+3. Process the data: run the processing chain in RStudio to compute result
+   variables. Arena then exports a minimum area unit (MAU) ZIP file.
+4. Analyse the MAU ZIP file with ArenaLytics: load and check the file, explore
+   the survey, select the inputs, configure and run the analysis, then review
+   and export the results.
+
+## The minimum area unit ZIP file
+
+The minimum area unit (MAU) is the smallest homogeneous land unit in the survey
+area. It is the base unit used for estimation in the Arena processing chain:
+
+- a plot with a single land use or vegetation type is one MAU; and
+- a plot divided into several land-use or vegetation sections gives one MAU per
+  section.
+
+An Arena system script generates the MAU ZIP file automatically. It contains:
+
+- the result variables of each MAU;
+- the reporting dimensions derived from categorical, taxonomic and Boolean
+  attributes; and
+- the pre-computed measures that ArenaLytics aggregates into means, totals,
+  tables, figures and sampling errors for any combination of dimensions.
+
+In a typical forest inventory, each record of the MAU file is one homogeneous
+plot section, with its area-based variables and reporting dimensions.
+
+The MAU ZIP file can be stored on the Arena server for archiving: unlock the
+processing chain, upload the MAU ZIP file, then download or delete it from the
+same place when needed.
+
+## Access the dashboard
+
+Use the [online version](https://openforis-shiny.shinyapps.io/arenalytics/) in
+a web browser, or install and run ArenaLytics in R (recommended):
+
+```{r}
+if (!require(remotes)) install.packages("remotes")
+remotes::install_github("openforis/arenalytics", upgrade = "never")
+arenalytics::shiny_run_arenalytics()
+```
+
+For computers without internet access, see
+[Installing ArenaLytics offline](offline-install.html).
+
+A demo dataset is available on the About page of the dashboard to try the
+analysis before working with your own survey.
+
+## Dashboard structure
+
+The dashboard has three pages:
+
+- **Home**: introduction to the dashboard, with links to the Tool and About
+  pages.
+- **Tool**: upload the data, set up the analysis and explore the results.
+    - Step 1, Load ZIP file: upload and check the MAU ZIP file, then read the
+      data.
+    - Step 2, Select inputs: analysis type, entity, and base-unit and sub-unit
+      dimensions.
+    - Step 3, Configure analysis: handling of lonely primary sampling units,
+      computation mode and confidence level.
+    - Insights panel: survey summary, sampling design, entities, dimensions and
+      measures.
+    - Analysis panel: means per hectare and totals with confidence intervals,
+      as figures and tables, with exports to PNG, CSV and a Word or HTML
+      report.
+- **About**: workflow, demo dataset, context and technical information on the
+  package.
+
+## Data pipeline
+
+The analysis relies on three exported functions:
+
+- `fct_checkzip()` checks that the ZIP file holds all required files;
+- `fct_readzip()` reads the files and prepares the variable metadata; and
+- `fct_arenalyse()` computes the design-based estimates with the srvyr and
+  survey packages.

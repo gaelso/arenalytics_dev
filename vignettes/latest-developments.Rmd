@@ -1,0 +1,37 @@
+---
+title: "Latest developments"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Latest developments}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+This page lists the main changes to ArenaLytics, newest first. The About page
+of the dashboard shows the most recent ones.
+
+## In the pipeline
+
+- Handling of additional complex surveys, panelization and ratio estimators.
+- Use-case demonstrations.
+
+## October 2026
+
+- New analysis setup: separate steps to select the inputs and configure the
+  analysis, with switches and dimension chips.
+- Category dimensions keep the order defined in the survey in tables, figures
+  and filters.
+- Updated package dependencies for online deployment.
+
+## September 2026
+
+- Category labels are now matched when a taxonomy name is missing from the
+  survey schema.
+
+## August 2026
+
+- ZIP files without taxonomies can be analysed.
+- Labels of hierarchical categories are matched at every level.
+- Deployment on Posit Connect Cloud.
+- Offline installation bundle, including Windows binaries, and documentation
+  website.

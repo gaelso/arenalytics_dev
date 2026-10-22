@@ -33,7 +33,12 @@ articles:
   - title: "Guides"
     navbar: Guides
     contents:
+      - user-guide
       - offline-install
+  - title: "News"
+    navbar: News
+    contents:
+      - latest-developments
 
 reference:
   - title: "Run the app"

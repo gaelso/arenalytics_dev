@@ -42,7 +42,7 @@
       "sp": "Comenzar"
     },
     {
-      "en": "A dashboard shinyApp, arenalytics, shipped as a R package, unlocking the powerful statistics of R with the visual convenience of dashboards.",
+      "en": "A dashboard shinyApp, ArenaLytics, shipped as a R package, unlocking the powerful statistics of R with the visual convenience of dashboards.",
       "fr": "Une application dashboard shinApp, fournie comme un package R, exploitant la puissance statistique de R avec la commodité visuelle des tableaux de bord.",
       "sp": "Un shinApp de panel, distribuido como un paquete R, desbloqueando la potente estadística de R con la conveniencia visual de los paneles."
     },
@@ -62,9 +62,9 @@
       "sp": "Aquí"
     },
     {
-      "en": "Arena Analytics is tailored to work with",
-      "fr": "Arena Analytics est conçu pour fonctionner avec",
-      "sp": "Arena Analytics está diseñado para funcionar con"
+      "en": "ArenaLytics is tailored to work with",
+      "fr": "ArenaLytics est conçu pour fonctionner avec",
+      "sp": "ArenaLytics está diseñado para funcionar con"
     },
     {
       "en": "Open Foris Arena helps you create a survey, collect and clean data, and develop a processing chain for calculating additional variables from your data.",
@@ -82,9 +82,9 @@
       "sp": "¿Necesita ayuda?"
     },
     {
-      "en": "Tutorials, examples and additional resources can help you harness the analytical power of Arena Analytics.",
-      "fr": "Des tutoriels, des exemples et des ressources supplémentaires peuvent vous aider à exploiter la puissance analytique d’Arena Analytics.",
-      "sp": "Tutoriales, ejemplos y recursos adicionales pueden ayudarle a aprovechar el poder analítico de Arena Analytics."
+      "en": "Tutorials, examples and additional resources can help you harness the analytical power of ArenaLytics.",
+      "fr": "Des tutoriels, des exemples et des ressources supplémentaires peuvent vous aider à exploiter la puissance analytique d’ArenaLytics.",
+      "sp": "Tutoriales, ejemplos y recursos adicionales pueden ayudarle a aprovechar el poder analítico de ArenaLytics."
     },
     {
       "en": "The full package documentation, as well as case studies and tutorials have been developed to help you navigate through the dashboard capabilities.",
@@ -190,6 +190,386 @@
       "en": "Computes measures individually, keeps going when some measures fail.",
       "fr": "Calcule les mesures une par une et continue si certaines échouent.",
       "sp": "Calcula las medidas una por una y continúa si algunas fallan."
+    },
+    {
+      "en": "About ArenaLytics",
+      "fr": "À propos d'ArenaLytics",
+      "sp": "Acerca de ArenaLytics"
+    },
+    {
+      "en": "ArenaLytics is an analytical dashboard for data collected and processed with Open Foris Arena. It turns survey results into estimates, tables, figures and reports on demand, without the need to define every output in advance.",
+      "fr": "ArenaLytics est un tableau de bord analytique pour les données collectées et traitées avec Open Foris Arena. Il transforme les résultats d'enquête en estimations, tableaux, graphiques et rapports à la demande, sans avoir à définir chaque résultat à l'avance.",
+      "sp": "ArenaLytics es un panel analítico para los datos recopilados y procesados con Open Foris Arena. Convierte los resultados de las encuestas en estimaciones, tablas, gráficos e informes a demanda, sin necesidad de definir cada resultado de antemano."
+    },
+    {
+      "en": "How it works",
+      "fr": "Fonctionnement",
+      "sp": "Cómo funciona"
+    },
+    {
+      "en": "ArenaLytics is the last step of a four-step workflow. The first three steps take place in Open Foris Arena.",
+      "fr": "ArenaLytics est la dernière étape d'un processus en quatre étapes. Les trois premières se déroulent dans Open Foris Arena.",
+      "sp": "ArenaLytics es el último paso de un flujo de trabajo de cuatro pasos. Los tres primeros se realizan en Open Foris Arena."
+    },
+    {
+      "en": "Design the survey",
+      "fr": "Concevoir l'enquête",
+      "sp": "Diseñar la encuesta"
+    },
+    {
+      "en": "Create the survey in Open Foris Arena: entities, attributes, categories, taxonomies and the sampling design.",
+      "fr": "Créez l'enquête dans Open Foris Arena : entités, attributs, catégories, taxonomies et plan d'échantillonnage.",
+      "sp": "Cree la encuesta en Open Foris Arena: entidades, atributos, categorías, taxonomías y diseño de muestreo."
+    },
+    {
+      "en": "Collect the data",
+      "fr": "Collecter les données",
+      "sp": "Recopilar los datos"
+    },
+    {
+      "en": "Field teams enter the data with Arena Mobile, online or offline, or with the Arena web form.",
+      "fr": "Les équipes de terrain saisissent les données avec Arena Mobile, en ligne ou hors ligne, ou avec le formulaire web d'Arena.",
+      "sp": "Los equipos de campo introducen los datos con Arena Mobile, en línea o sin conexión, o con el formulario web de Arena."
+    },
+    {
+      "en": "Process the data",
+      "fr": "Traiter les données",
+      "sp": "Procesar los datos"
+    },
+    {
+      "en": "Run the processing chain in RStudio to compute result variables, such as volume, biomass and carbon stocks. Arena then exports a minimum area unit (MAU) ZIP file.",
+      "fr": "Exécutez la chaîne de traitement dans RStudio pour calculer les variables de résultat, comme le volume, la biomasse et les stocks de carbone. Arena exporte ensuite un fichier ZIP d'unités de surface minimales (MAU).",
+      "sp": "Ejecute la cadena de procesamiento en RStudio para calcular las variables de resultado, como el volumen, la biomasa y las reservas de carbono. Luego, Arena exporta un archivo ZIP de unidades mínimas de área (MAU)."
+    },
+    {
+      "en": "Analyse with ArenaLytics",
+      "fr": "Analyser avec ArenaLytics",
+      "sp": "Analizar con ArenaLytics"
+    },
+    {
+      "en": "Upload the MAU ZIP file, select the inputs and run the analysis. Review the estimates, then export tables, figures and a report.",
+      "fr": "Chargez le fichier ZIP MAU, sélectionnez les données d'entrée et lancez l'analyse. Examinez les estimations, puis exportez les tableaux, les graphiques et un rapport.",
+      "sp": "Cargue el archivo ZIP MAU, seleccione los datos de entrada y ejecute el análisis. Revise las estimaciones y exporte tablas, gráficos y un informe."
+    },
+    {
+      "en": "Workflow in detail",
+      "fr": "Le processus en détail",
+      "sp": "El flujo de trabajo en detalle"
+    },
+    {
+      "en": "MAU ZIP file",
+      "fr": "Fichier ZIP MAU",
+      "sp": "Archivo ZIP MAU"
+    },
+    {
+      "en": "Load and check",
+      "fr": "Charger et vérifier",
+      "sp": "Cargar y verificar"
+    },
+    {
+      "en": "Explore insights",
+      "fr": "Explorer les données",
+      "sp": "Explorar los datos"
+    },
+    {
+      "en": "Select inputs",
+      "fr": "Sélectionner les données d'entrée",
+      "sp": "Seleccionar los datos de entrada"
+    },
+    {
+      "en": "Configure and run",
+      "fr": "Configurer et lancer",
+      "sp": "Configurar y ejecutar"
+    },
+    {
+      "en": "Review and export",
+      "fr": "Examiner et exporter",
+      "sp": "Revisar y exportar"
+    },
+    {
+      "en": "Context",
+      "fr": "Contexte",
+      "sp": "Contexto"
+    },
+    {
+      "en": "Open Foris is a set of free and open-source software tools for forest and land monitoring, offered by the Food and Agriculture Organization of the United Nations (FAO). It aims to make monitoring accessible, transparent and collaborative. The tools cover field data collection, visual interpretation, data management and geospatial analysis.",
+      "fr": "Open Foris est un ensemble d'outils logiciels libres et open source pour le suivi des forêts et des terres, proposé par l'Organisation des Nations Unies pour l'alimentation et l'agriculture (FAO). Il vise à rendre le suivi accessible, transparent et collaboratif. Les outils couvrent la collecte de données de terrain, l'interprétation visuelle, la gestion des données et l'analyse géospatiale.",
+      "sp": "Open Foris es un conjunto de herramientas de software libre y de código abierto para el monitoreo de los bosques y las tierras, ofrecido por la Organización de las Naciones Unidas para la Alimentación y la Agricultura (FAO). Su objetivo es que el monitoreo sea accesible, transparente y colaborativo. Las herramientas abarcan la recopilación de datos de campo, la interpretación visual, la gestión de datos y el análisis geoespacial."
+    },
+    {
+      "en": "Open Foris Arena is a cloud-based platform to design surveys and to collect, manage and process field data. It supports multilingual and multicycle surveys, offline data collection with Arena Mobile, and statistical processing in RStudio.",
+      "fr": "Open Foris Arena est une plateforme en ligne pour concevoir des enquêtes et collecter, gérer et traiter des données de terrain. Elle prend en charge les enquêtes multilingues et sur plusieurs cycles, la collecte de données hors ligne avec Arena Mobile et le traitement statistique dans RStudio.",
+      "sp": "Open Foris Arena es una plataforma en la nube para diseñar encuestas y recopilar, gestionar y procesar datos de campo. Admite encuestas multilingües y de varios ciclos, la recopilación de datos sin conexión con Arena Mobile y el procesamiento estadístico en RStudio."
+    },
+    {
+      "en": "ArenaLytics was developed for national forest inventories and other sample-based surveys. It addresses a common challenge of these surveys: producing reliable statistics from large and complex datasets. Users choose the measures, dimensions and filters they need, and the dashboard computes means, totals and their sampling errors on demand.",
+      "fr": "ArenaLytics a été développé pour les inventaires forestiers nationaux et les autres enquêtes par échantillonnage. Il répond à un défi commun à ces enquêtes : produire des statistiques fiables à partir de jeux de données volumineux et complexes. Les utilisateurs choisissent les mesures, les dimensions et les filtres dont ils ont besoin, et le tableau de bord calcule à la demande les moyennes, les totaux et leurs erreurs d'échantillonnage.",
+      "sp": "ArenaLytics se desarrolló para los inventarios forestales nacionales y otras encuestas por muestreo. Responde a un desafío común de estas encuestas: obtener estadísticas fiables a partir de conjuntos de datos grandes y complejos. Los usuarios eligen las medidas, dimensiones y filtros que necesitan, y el panel calcula a demanda las medias, los totales y sus errores de muestreo."
+    },
+    {
+      "en": "Source code on GitHub",
+      "fr": "Code source sur GitHub",
+      "sp": "Código fuente en GitHub"
+    },
+    {
+      "en": "Demo dataset",
+      "fr": "Jeu de données de démonstration",
+      "sp": "Conjunto de datos de demostración"
+    },
+    {
+      "en": "Use the demo dataset to try the dashboard before working with your own survey. It is a demonstration forest inventory that follows the Arena forest inventory template (Template B): clusters of plots, with several entities measured in each plot.",
+      "fr": "Utilisez le jeu de données de démonstration pour essayer le tableau de bord avant de travailler avec votre propre enquête. Il s'agit d'un inventaire forestier de démonstration qui suit le modèle d'inventaire forestier d'Arena (Template B) : des grappes de placettes, avec plusieurs entités mesurées dans chaque placette.",
+      "sp": "Utilice el conjunto de datos de demostración para probar el panel antes de trabajar con su propia encuesta. Es un inventario forestal de demostración que sigue la plantilla de inventario forestal de Arena (Template B): conglomerados de parcelas, con varias entidades medidas en cada parcela."
+    },
+    {
+      "en": "How to use it",
+      "fr": "Mode d'emploi",
+      "sp": "Cómo usarlo"
+    },
+    {
+      "en": "Download the demo dataset.",
+      "fr": "Téléchargez le jeu de données de démonstration.",
+      "sp": "Descargue el conjunto de datos de demostración."
+    },
+    {
+      "en": "Open the Tool page and upload the ZIP file in step 1, Load ZIP file.",
+      "fr": "Ouvrez la page Analyser et chargez le fichier ZIP à l'étape 1, Charger le fichier ZIP.",
+      "sp": "Abra la página Análisis y cargue el archivo ZIP en el paso 1, Cargar el archivo ZIP."
+    },
+    {
+      "en": "Select the inputs, configure the analysis and select Run analysis.",
+      "fr": "Sélectionnez les données d'entrée, configurez l'analyse et cliquez sur Run analysis.",
+      "sp": "Seleccione los datos de entrada, configure el análisis y haga clic en Run analysis."
+    },
+    {
+      "en": "Download demo dataset",
+      "fr": "Télécharger le jeu de données de démonstration",
+      "sp": "Descargar el conjunto de datos de demostración"
+    },
+    {
+      "en": "Example measures",
+      "fr": "Exemples de mesures",
+      "sp": "Ejemplos de medidas"
+    },
+    {
+      "en": "Under the hood",
+      "fr": "Sous le capot",
+      "sp": "Bajo el capó"
+    },
+    {
+      "en": "Package",
+      "fr": "Package",
+      "sp": "Paquete"
+    },
+    {
+      "en": "Version",
+      "fr": "Version",
+      "sp": "Versión"
+    },
+    {
+      "en": "Licence",
+      "fr": "Licence",
+      "sp": "Licencia"
+    },
+    {
+      "en": "Authors",
+      "fr": "Auteurs",
+      "sp": "Autores"
+    },
+    {
+      "en": "maintainer",
+      "fr": "responsable",
+      "sp": "responsable"
+    },
+    {
+      "en": "Source code",
+      "fr": "Code source",
+      "sp": "Código fuente"
+    },
+    {
+      "en": "Documentation",
+      "fr": "Documentation",
+      "sp": "Documentación"
+    },
+    {
+      "en": "Install and run ArenaLytics in R (recommended):",
+      "fr": "Installez et lancez ArenaLytics dans R (recommandé) :",
+      "sp": "Instale y ejecute ArenaLytics en R (recomendado):"
+    },
+    {
+      "en": "Open the online version",
+      "fr": "Ouvrir la version en ligne",
+      "sp": "Abrir la versión en línea"
+    },
+    {
+      "en": "Dependencies",
+      "fr": "Dépendances",
+      "sp": "Dependencias"
+    },
+    {
+      "en": "ArenaLytics is an R package built with Shiny. It relies on the following packages.",
+      "fr": "ArenaLytics est un package R développé avec Shiny. Il s'appuie sur les packages suivants.",
+      "sp": "ArenaLytics es un paquete de R desarrollado con Shiny. Se basa en los siguientes paquetes."
+    },
+    {
+      "en": "Interface",
+      "fr": "Interface",
+      "sp": "Interfaz"
+    },
+    {
+      "en": "Data preparation",
+      "fr": "Préparation des données",
+      "sp": "Preparación de los datos"
+    },
+    {
+      "en": "Survey statistics",
+      "fr": "Statistiques d'enquête",
+      "sp": "Estadísticas de encuestas"
+    },
+    {
+      "en": "Figures and reports",
+      "fr": "Graphiques et rapports",
+      "sp": "Gráficos e informes"
+    },
+    {
+      "en": "Latest developments",
+      "fr": "Derniers développements",
+      "sp": "Últimas novedades"
+    },
+    {
+      "en": "October 2026",
+      "fr": "Octobre 2026",
+      "sp": "Octubre de 2026"
+    },
+    {
+      "en": "New analysis setup: separate steps to select the inputs and configure the analysis, with switches and dimension chips.",
+      "fr": "Nouvelle configuration de l'analyse : des étapes distinctes pour sélectionner les données d'entrée et configurer l'analyse, avec des interrupteurs et des pastilles de dimensions.",
+      "sp": "Nueva configuración del análisis: pasos separados para seleccionar los datos de entrada y configurar el análisis, con interruptores y etiquetas de dimensiones."
+    },
+    {
+      "en": "Category dimensions keep the order defined in the survey in tables, figures and filters.",
+      "fr": "Les dimensions de catégorie conservent l'ordre défini dans l'enquête dans les tableaux, les graphiques et les filtres.",
+      "sp": "Las dimensiones de categoría mantienen el orden definido en la encuesta en tablas, gráficos y filtros."
+    },
+    {
+      "en": "Updated package dependencies for online deployment.",
+      "fr": "Mise à jour des dépendances pour le déploiement en ligne.",
+      "sp": "Actualización de las dependencias para el despliegue en línea."
+    },
+    {
+      "en": "Detailed workflow",
+      "fr": "Processus détaillé",
+      "sp": "Flujo de trabajo detallado"
+    },
+    {
+      "en": "User manual",
+      "fr": "Manuel d'utilisation",
+      "sp": "Manual del usuario"
+    },
+    {
+      "en": "Sampling design",
+      "fr": "Plan d'échantillonnage",
+      "sp": "Diseño de muestreo"
+    },
+    {
+      "en": "Stratified random sampling, two strata",
+      "fr": "Échantillonnage aléatoire stratifié, deux strates",
+      "sp": "Muestreo aleatorio estratificado, dos estratos"
+    },
+    {
+      "en": "Base unit",
+      "fr": "Unité de base",
+      "sp": "Unidad base"
+    },
+    {
+      "en": "Plot",
+      "fr": "Placette",
+      "sp": "Parcela"
+    },
+    {
+      "en": "Samples",
+      "fr": "Échantillons",
+      "sp": "Muestras"
+    },
+    {
+      "en": "167 plots in 44 clusters, across three provinces",
+      "fr": "167 placettes dans 44 grappes, réparties sur trois provinces",
+      "sp": "167 parcelas en 44 conglomerados, en tres provincias"
+    },
+    {
+      "en": "Data overview",
+      "fr": "Aperçu des données",
+      "sp": "Vista general de los datos"
+    },
+    {
+      "en": "An",
+      "fr": "Un",
+      "sp": "Un"
+    },
+    {
+      "en": "offline installation bundle",
+      "fr": "paquet d'installation hors ligne",
+      "sp": "paquete de instalación sin conexión"
+    },
+    {
+      "en": "is available for computers without internet access.",
+      "fr": "est disponible pour les ordinateurs sans accès à internet.",
+      "sp": "está disponible para computadoras sin acceso a internet."
+    },
+    {
+      "en": "Example entities",
+      "fr": "Exemples d'entités",
+      "sp": "Ejemplos de entidades"
+    },
+    {
+      "en": "Tree, deadwood, stump",
+      "fr": "Arbre, bois mort, souche",
+      "sp": "Árbol, madera muerta, tocón"
+    },
+    {
+      "en": "Example dimensions",
+      "fr": "Exemples de dimensions",
+      "sp": "Ejemplos de dimensiones"
+    },
+    {
+      "en": "Forest type, land use, tree DBH (10 cm classes), species",
+      "fr": "Type de forêt, utilisation des terres, DHP des arbres (classes de 10 cm), espèce",
+      "sp": "Tipo de bosque, uso de la tierra, DAP de los árboles (clases de 10 cm), especie"
+    },
+    {
+      "en": "Number of trees, basal area, volume, carbon",
+      "fr": "Nombre d'arbres, surface terrière, volume, carbone",
+      "sp": "Número de árboles, área basal, volumen, carbono"
+    },
+    {
+      "en": "In the pipeline",
+      "fr": "En préparation",
+      "sp": "En preparación"
+    },
+    {
+      "en": "Handling of additional complex surveys, panelization and ratio estimators.",
+      "fr": "Prise en charge d'autres enquêtes complexes, de la mise en panel et des estimateurs par le ratio.",
+      "sp": "Tratamiento de otras encuestas complejas, de la panelización y de los estimadores de razón."
+    },
+    {
+      "en": "Use-case demonstrations.",
+      "fr": "Démonstrations de cas d'utilisation.",
+      "sp": "Demostraciones de casos de uso."
+    },
+    {
+      "en": "Use cases and stories",
+      "fr": "Cas d'utilisation et témoignages",
+      "sp": "Casos de uso e historias"
+    },
+    {
+      "en": "Coming soon.",
+      "fr": "Bientôt disponible.",
+      "sp": "Próximamente."
+    },
+    {
+      "en": "Full changelog",
+      "fr": "Historique complet des modifications",
+      "sp": "Historial completo de cambios"
     }
   ]
 }
