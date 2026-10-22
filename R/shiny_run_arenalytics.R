@@ -129,10 +129,10 @@ shiny_run_arenalytics <- function(...) {
     light = list(
       primary = "#116bac",
       link = "#116bac",
-      secondary = "#81af44",
+      secondary = "#81af44", # "#5a812f",
       secondary_tint = "#edf2e7",
       info = "#1c4767",
-      success = "#81af44",
+      success = "#81af44", # "#5a812f",
       warning = "#f58320",
       danger = "#980000",
       link_hover = "#545454",
@@ -155,35 +155,6 @@ shiny_run_arenalytics <- function(...) {
       card_header = "#212529"
     )
   )
-
-    # app_colors <- list(
-    #   light = list(
-    #     primary = "#116bac",
-    #     link = "#116bac",
-    #     secondary = "#5a812f",
-    #     secondary_tint = "#edf2e7",
-    #     info = "#1c4767",
-    #     success = "#5a812f",
-    #     warning = "#f58320",
-    #     danger = "#980000",
-    #     link_hover = "#545454",
-    #     btn_primary = "#116bac",
-    #     btn_primary_hover = "#1688da"
-    #   ),
-    #   dark = list(
-    #     primary = "#116bac",
-    #     link = "#4e9df8",
-    #     secondary = "#81af44",
-    #     secondary_tint = "#323e2e",
-    #     info = "#4e9df8",
-    #     success = "#81af44",
-    #     warning = "#f58320",
-    #     danger = "#980000",
-    #     link_hover = "#999999",
-    #     btn_primary = "#1d82f6",
-    #     btn_primary_hover = "#4e9df8"
-    #   )
-    # )
 
   ## App theme
   ## Fonts: Open Sans for text (FAO Design System), Fira Code for code;
@@ -235,25 +206,42 @@ shiny_run_arenalytics <- function(...) {
             class = "footer-links col-lg",
             tags$ul(
               class = "list-inline mb-2",
-              purrr::map2(footer_links$key, footer_links$href, \(key, href) tags$li(
-                class = "list-inline-item",
-                tags$a(href = href[[1]], target = "_blank", !!!as.list(href), i18n$t(key))
-              ))
+              purrr::map2(footer_links$key, footer_links$href, \(key, href) {
+                tags$li(
+                  class = "list-inline-item",
+                  tags$a(
+                    href = href[[1]],
+                    target = "_blank",
+                    !!!as.list(href),
+                    i18n$t(key)
+                  )
+                )
+              })
             ),
             tags$small(
-              paste0("ArenaLytics v", utils::packageVersion("arenalytics"), " - "),
-              i18n$t(.tr$footer_credit), " ",
-              tags$a("Open Foris Arena", href = "https://www.openforis.org/arena/", target = "_blank")
+              paste0(
+                "ArenaLytics v",
+                utils::packageVersion("arenalytics"),
+                " - "
+              ),
+              i18n$t(.tr$footer_credit),
+              " ",
+              tags$a(
+                "Open Foris Arena",
+                href = "https://www.openforis.org/arena/",
+                target = "_blank"
+              )
             )
           ),
           div(
             class = "col-lg-auto text-lg-end",
+            paste0("\u00a9 FAO\u00a0", format(Sys.Date(), "%Y"))
             ## FAO copyright notice, linked to the Terms and Conditions as on fao.org
-            tags$a(
-              class = "copyright", target = "_blank",
-              href = footer_links$href[[2]][[1]], !!!as.list(footer_links$href[[2]]),
-              paste0("\u00a9 FAO\u00a0", format(Sys.Date(), "%Y"))
-            )
+            # tags$a(
+            #   class = "copyright", target = "_blank",
+            #   href = footer_links$href[[2]][[1]], !!!as.list(footer_links$href[[2]]),
+            #   paste0("\u00a9 FAO\u00a0", format(Sys.Date(), "%Y"))
+            # )
           )
         )
       )
@@ -297,6 +285,8 @@ shiny_run_arenalytics <- function(...) {
       )),
       ## CSS Style: self-hosted fonts, then app styles
       tags$link(rel = "stylesheet", type = "text/css", href = paste0("assets/fonts/fonts.css?v=", asset_v)),
+      ## Language selector flags, self-hosted (data-raw/vendor_flags.R)
+      tags$link(rel = "stylesheet", type = "text/css", href = paste0("assets/flags/flags.css?v=", asset_v)),
       tags$link(rel = "stylesheet", type = "text/css", href = paste0("assets/style.css?v=", asset_v)),
       ## App colors as CSS custom properties for style.css (e.g. secondary_tint -> --app-secondary-tint)
       tags$style(HTML(
@@ -314,14 +304,6 @@ shiny_run_arenalytics <- function(...) {
       tags$link(id = "favicon", rel = "icon", type = "image/x-icon", href = "assets/branding/favicon.ico"),
       tags$meta(name="apple-mobile-web-app-title", content="ArenaLytics"),
     ),
-    ## HTML Dependency - flag icons used for translation selector
-    htmltools::htmlDependency(
-      name = "flag-icons",
-      version = "6.6.6",
-      src = c(href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.6.6/"),
-      stylesheet = "css/flag-icons.min.css"
-    ),
-
     ## + Layout UI elements ====================================================
 
     bslib::page_navbar(
