@@ -6,6 +6,7 @@ Guidance for Claude Code when working in this repository.
 
 `arenalytics` is an R package that ships a Shiny dashboard ("Analytical Dashboard for Open Foris Arena"). Users upload a ZIP file produced by an Open Foris Arena processing chain; the app checks and reads it, shows survey insights, runs design-based survey estimation (means and totals per reporting dimension, via `srvyr`/`survey`), plots results and exports a Quarto report.
 
+- Name: the app is displayed as **ArenaLytics** (capital L, for easier pronunciation) in all user-facing text, translations and docs prose. The R package, functions, file names, repositories and URLs stay `arenalytics`.
 - This repo (`gaelso/arenalytics_dev`) is the development version. Production lives at `openforis/arenalytics`.
 - Work happens on `dev`; `master` is the main branch (CI runs R-CMD-check on push/PR to `master`).
 - Deployed on shinyapps.io / Posit Connect Cloud via `app.R` + `manifest.json`. Regenerate the manifest with `source("data-raw/write_manifest.R")` after a dependency or asset change: it bundles only the git-tracked `app.R`, `DESCRIPTION`, `NAMESPACE`, `LICENSE`, `R/` and `inst/` (commit new assets first). Do not run a bare `rsconnect::writeManifest()`: it scans `tests/` and `data-raw/` and adds dev packages (devtools, testthat, pkgdown...).
@@ -25,7 +26,7 @@ There is **no testthat suite**. Files in `tests/` are manual check scripts run l
 - `tests/check-toolserver.R` — rebuilds `rv` / `input` as plain lists and replays the tool module server logic outside Shiny.
 - `tests/check-arenalyse.R`, `tests/check-data.R` — ad-hoc checks of core functions.
 - `tests/dev-fct/` — experimental / legacy versions of core functions.
-- `tests/tuto-pkg.R` — notes on how the package was scaffolded.
+- `tests/tuto-pkg.R` — notes on how the package was scaffolded, the git workflow, the release steps to `openforis/arenalytics`, and the URLs to update when the app moves to the `un-fao` GitHub, FAO shinyapps.io and Posit Connect Cloud accounts (all commented).
 
 Demo data: `inst/extdata/MAU_Shiny_demo.zip` (current format), `OLAP_Shiny_demo*.zip` (legacy format, plus broken/corrupted variants for error handling).
 
@@ -44,6 +45,7 @@ Demo data: `inst/extdata/MAU_Shiny_demo.zip` (current format), `OLAP_Shiny_demo*
 - `R/shiny_run_arenalytics.R` — entry point: global options, i18n setup, `bslib` theme, `page_navbar` UI, and the main server. Modules share a single `rv <- reactiveValues(inputs, insights, analysis, actions)`; navigation between tabs is triggered through `rv$actions$*`.
 - Modules come in UI/server pairs: `mod_home_*`, `mod_about_*`, `mod_tool_*`. `mod_tool_server.R` (~1150 lines) holds almost all app logic: the sidebar accordions (1 load ZIP file → 2 select inputs: analysis type, entity, dimensions → 3 configure analysis: lonely PSU, computation mode, confidence level, run), insight cards, label replacement for categories/taxonomies, MEANS/TOTALS plots with dimension filters, table export, and report download.
 - Result label replacement ("Polish results" step): dimension codes are swapped for taxonomy scientific names or category labels (`label_<lang>` if present, else `label`, keyed on `code_joint`). Category dimensions become factors whose levels follow the category table order (`level_*_code` then `code`), so tables, plots and filters keep the survey's class order; taxonomy dimensions stay character (alphabetical). Convert to character where a plain vector is needed (e.g. filter choices). `tests/check-toolserver.R` mirrors this step.
+- About page (`mod_about_UI.R`): workflow (four steps, then buttons for the detailed workflow, a Bootstrap modal in the UI markup, and the ArenaLytics section of the Arena user manual), demo dataset (download from `mod_about_server.R`, summary and data overview cards describing `inst/extdata/MAU_Shiny_demo.zip`: update them if the demo changes), context (Open Foris, Open Foris Arena, ArenaLytics), under the hood (package card with the version from `utils::packageVersion()`, dependencies, latest developments until the last month, linking to the full list in `vignettes/latest-developments.Rmd` (update both when releasing), and use cases and stories, a placeholder for links to info notes and stories). All text is in `.tr$about_*` keys; styles are the `.about-*` classes in `style.css`.
 - Reports: `inst/quarto/analysis-report.qmd`, copied to a temp dir and rendered with `quarto::quarto_render()` from the tool server.
 - Static assets (`inst/assets`: CSS, JS handlers, fonts, branding files) are served under the `assets/` prefix registered in `R/zzz.R` (`.onLoad`). CSS and JS are linked with a `?v=<asset_v>` cache-busting stamp (latest modification time in `inst/assets`); keep it when adding a stylesheet or script.
 
@@ -53,7 +55,7 @@ The app follows the FAO Design System (v3.7.2), the FAO Logo Policy and the FAO 
 
 - **Theme:** `bs_theme()` with the Yeti bootswatch; Open Sans for text and Fira Code for code, self-hosted in `inst/assets/fonts/` (`data-raw/vendor_fonts.R`).
 - **Colours, one source:** the `app_colors` list (light/dark) in `R/shiny_run_arenalytics.R`. Each entry becomes a CSS variable `--app-<name>` (underscores → hyphens) for `:root` and `[data-bs-theme=dark]`; the light values also feed `bs_theme()`. In `inst/assets/style.css` use these variables, not hex codes. Entries: `primary`/`link` (FAO blue, lighter link in dark), `secondary`/`success` (Open Foris green), `secondary_tint` (accordion headers), `info`, `warning`/`danger` (FAO orange/red, identical in both themes), `link_hover` (FAO greys), `btn_primary`/`btn_primary_hover` (FAO primary button), `card_header` (FAO Primary Light).
-- **Header:** official FAO 3-line English logo for all languages, 48 px, top left, not a link, light/dark files swapped by CSS (`.header-logo-light` / `.header-logo-dark`); then the two-line app title linking home (`{Arenalytics}` over `.tr$app_title`). Fixed 72 px navbar, `navbar-expand-xl`. Logo files in `inst/assets/branding/` are used unmodified (see its README).
+- **Header:** official FAO 3-line English logo for all languages, 48 px, top left, not a link, light/dark files swapped by CSS (`.header-logo-light` / `.header-logo-dark`); then the two-line app title linking home (`{ArenaLytics}` over `.tr$app_title`). Fixed 72 px navbar, `navbar-expand-xl`. Logo files in `inst/assets/branding/` are used unmodified (see its README).
 - **Footer:** `app_footer()` — Global Goals icons (`.gg-logo-light` / `.gg-logo-dark`, 60 px), six fao.org links whose URLs follow the language (`data-href-<lang>`), app credit with `utils::packageVersion()`, © FAO.
 - **`inst/assets/js_brand.js`:** handles the `app-locale` message sent on language change (sets `<html lang>`, swaps `data-src-<lang>` / `data-alt-<lang>` / `data-href-<lang>`), and swaps the favicon (black / white `.ico`) with the browser theme.
 - **Links:** text links in panels and the footer use the body colour, underlined, grey on hover (`--app-link-hover`). External links open in a new tab (`target = "_blank"`).
@@ -72,7 +74,9 @@ The app follows the FAO Design System (v3.7.2), the FAO Logo Policy and the FAO 
 ### Other
 
 - `R/utils.R` — `%||%` backport, `utils_find_label()`, `utils_make_grp()`.
-- `data-raw/` (not shipped with the package): `make_offline_bundle.R` builds offline package bundles (see `vignettes/offline-install.Rmd`; its package list mirrors `DESCRIPTION` `Imports`), `write_manifest.R` regenerates `manifest.json`, `vendor_fonts.R` downloads the self-hosted fonts.
+- README images (screenshots) go in `man/figures/` (excluded from the package build in `.Rbuildignore`, copied to the docs site by pkgdown); not in `inst/`, which ships with the package.
+- Vignettes (pkgdown articles, listed in `_pkgdown.yml`): `user-guide.Rmd` (summary of the ArenaLytics section of the Arena user manual), `offline-install.Rmd`, `latest-developments.Rmd`. The site at openforis.github.io/arenalytics is built by `.github/workflows/pkgdown.yaml` on each push to `master` of `openforis/arenalytics`.
+- `data-raw/` (not shipped with the package): `make_offline_bundle.R` builds offline package bundles (see `vignettes/offline-install.Rmd`; its package list mirrors `DESCRIPTION` `Imports`), `write_manifest.R` regenerates `manifest.json`, `vendor_fonts.R` and `vendor_flags.R` download the self-hosted fonts and language selector flags (the app loads no CDN asset, so it works offline).
 
 ## Coding conventions
 

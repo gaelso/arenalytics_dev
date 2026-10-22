@@ -14,3 +14,4 @@
 ^data-raw/arenalytics_offline_pkgs\.zip$
 ^data-raw/arenalytics_offline_pkgs_WIN\.zip$
 ^CLAUDE\.md$
+^man/figures$

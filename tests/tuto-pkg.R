@@ -248,11 +248,13 @@
 # ## Docs site: https://openforis.github.io/arenalytics/ -> https://un-fao.github.io/arenalytics/
 # ## - DESCRIPTION: URL
 # ## - _pkgdown.yml: url
+# ## - README.md: top links (Documentation, User guide, Latest developments), offline installation
+# ##   link in "Install and run", "full changelog" link in "Latest developments"
 # ## - R/mod_about_UI.R: Documentation link and its text, offline installation bundle link
 # ##   (articles/offline-install.html), Full changelog link (articles/latest-developments.html)
 #
 # ## Live app: https://openforis-shiny.shinyapps.io/arenalytics/ -> FAO shinyapps.io or Connect Cloud URL
-# ## - README.md: "Run at"
+# ## - README.md: "online version" link at the end of "Install and run"
 # ## - _pkgdown.yml: home link "Live app"
 # ## - R/mod_about_UI.R: "Open the online version"
 # ## - R/mod_tool_server.R: report author line ("Prepared with ArenaLytics | <url> | <date>")
