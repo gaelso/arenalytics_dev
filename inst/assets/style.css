@@ -721,3 +721,101 @@ body > .container-fluid {
 [data-bs-theme=dark] .plot-themed-dark {
   visibility: visible;
 }
+
+/* Specific CSS - Analysis panel ------
+   Header (survey context, measure by dimensions), toolbar on one line (measure,
+   means or totals, filter chip, export menu), filters opened below the toolbar. */
+.analysis-header {
+  margin: 0.25rem 0 1rem;
+}
+.analysis-context {
+  font-size: 0.85rem;
+  color: var(--bs-secondary-color);
+}
+.analysis-heading {
+  margin: 0.15rem 0 0;
+  font-weight: 700;
+}
+.analysis-controls {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+}
+.analysis-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+}
+.analysis-toolbar .form-group {
+  margin-bottom: 0;
+}
+.analysis-toolbar .form-label {
+  display: block;
+}
+.analysis-toolbar-measure {
+  flex: 0 1 260px;
+  min-width: 200px;
+}
+.analysis-toolbar-estimates {
+  width: 240px;
+}
+.analysis-toolbar-export {
+  margin-left: auto;
+}
+
+/* Filter chip: rounded, shows the filter state; opens the filters panel */
+.btn.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 360px;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--bs-body-color);
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.btn.filter-chip:hover,
+.btn.filter-chip[aria-expanded="true"] {
+  border-color: var(--app-secondary);
+  color: var(--bs-emphasis-color);
+}
+.btn.filter-chip .shiny-text-output {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.analysis-filters {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--bs-border-color);
+}
+
+/* Export menu: one section per output (table, figure, report) */
+.export-menu {
+  min-width: 300px;
+  padding: 0.5rem 0;
+}
+.export-section {
+  padding: 0.5rem 1rem;
+}
+.export-section + .export-section {
+  border-top: 1px solid var(--bs-border-color);
+}
+.export-title {
+  margin-bottom: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--bs-secondary-color);
+}
+.export-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}

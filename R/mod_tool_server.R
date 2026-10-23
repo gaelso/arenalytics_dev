@@ -624,14 +624,49 @@ mod_tool_server <- function(id, rv) {
       req(rv$analysis$mode)
       is_area <- identical(rv$analysis$mode, "area")
 
+      ## Area mode has totals only: hide the Means/Totals switch and select Totals
       shinyjs::toggle("analysis_table_source_wrap", condition = !is_area)
-
-      updateSelectInput(
+      shinyWidgets::updateRadioGroupButtons(
         session,
         "analysis_table_source",
-        choices = if (is_area) c("Totals" = "TOTALS") else c("Means (per ha)" = "MEANS", "Totals" = "TOTALS"),
         selected = if (is_area) "TOTALS" else (input$analysis_table_source %||% "MEANS")
       )
+    })
+
+    ## + Header: survey context and measure by dimensions ======
+
+    ## "Survey label \u00b7 Cycle 2 \u00b7 Stratified random sampling"
+    output$analysis_context <- renderText({
+      req(rv$inputs$data)
+      ch <- rv$inputs$data$chain_summary
+      sampling_strategy_labels <- c(
+        "1" = "Random sampling",
+        "2" = "Systematic sampling",
+        "3" = "Stratified random sampling",
+        "4" = "Stratified systematic sampling",
+        "5" = "Two-phase sampling"
+      )
+      c(
+        ch$surveyLabel %||% ch$surveyName,
+        paste("Cycle", ch$selectedCycle %||% "-"),
+        unname(sampling_strategy_labels[as.character(ch$samplingStrategy %||% "")])
+      ) |>
+        stats::na.omit() |>
+        paste(collapse = " \u00b7 ")
+    })
+
+    ## "Number of bamboos by Forest Status and Land Use"
+    output$analysis_heading <- renderText({
+      req(rv$analysis$dims, rv$analysis$dim_meta)
+      dim_labels <- rv$analysis$dim_meta |>
+        dplyr::filter(.data$name %in% rv$analysis$dims) |>
+        dplyr::pull("label")
+      dims_txt <- if (length(dim_labels) > 1) {
+        paste(paste(utils::head(dim_labels, -1), collapse = ", "), "and", utils::tail(dim_labels, 1))
+      } else {
+        dim_labels
+      }
+      paste(sel_measure()$label, "by", dims_txt)
     })
 
     ## + Plot selectors ======
@@ -696,10 +731,26 @@ mod_tool_server <- function(id, rv) {
       if (length(filter_inputs) == 0) return(NULL)
 
       div(
-        style = "margin-top: 0.75rem;",
-        tags$small(class = "text-muted", bsicons::bs_icon("funnel"), " Dimension filters"),
+        class = "analysis-filters",
         layout_column_wrap(width = "180px", fill = FALSE, !!!filter_inputs)
       )
+    })
+
+    ## Filters live in a collapsed panel: render them anyway, so the filter values
+    ## (and the chip summary) exist before the panel is opened
+    outputOptions(output, "analysis_extra_filters", suspendWhenHidden = FALSE)
+
+    ## Filter chip text: "Forest Status: all 4 \u00b7 Land Use: 2 of 5"
+    output$analysis_filter_summary <- renderText({
+      req(rv$analysis$result, rv$analysis$dims)
+      filters <- filter_vals()
+      purrr::map_chr(rv$analysis$dims, \(d) {
+        n_all <- length(unique(rv$analysis$result$MEANS[[d]]))
+        n_sel <- length(filters[[d]] %||% seq_len(n_all))
+        label <- rv$analysis$dim_meta |> dplyr::filter(.data$name == d) |> dplyr::pull("label") |> dplyr::first()
+        paste0(label, ": ", if (n_sel == n_all) paste("all", n_all) else paste(n_sel, "of", n_all))
+      }) |>
+        paste(collapse = " \u00b7 ")
     })
 
     ## Current filter values for all dims, named by dim
@@ -828,7 +879,11 @@ mod_tool_server <- function(id, rv) {
           ok = FALSE,
           message = paste0(
             "To display the figure, assign or reduce these dimensions to one class: ",
-            paste(invalid_dims, collapse = ", "), "."
+            rv$analysis$dim_meta |>
+              dplyr::filter(.data$name %in% invalid_dims) |>
+              dplyr::pull("label") |>
+              paste(collapse = ", "),
+            "."
           )
         )
       }

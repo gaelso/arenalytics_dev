@@ -408,57 +408,146 @@ mod_tool_UI <- function(id, i18n, .tr){
           id = ns("analysis_results"),
 
           ## ++ ##
-          ## -- Row 1: analysis table --------------------------------------
+          ## -- Header: survey context, then measure by dimensions ------------
           ## ++ ##
-          card(
-            card_header("Cross outputs settings"),
-            layout_column_wrap(
-              width = "220px",
-              fill  = FALSE,
-              selectInput(
-                ns("analysis_sel_measure"),
-                "Measure",
-                choices = NULL,
-                selected = NULL
+          div(
+            class = "analysis-header",
+            div(class = "analysis-context", textOutput(ns("analysis_context"), inline = TRUE)),
+            h3(class = "analysis-heading", textOutput(ns("analysis_heading"), inline = TRUE))
+          ),
+
+          ## ++ ##
+          ## -- Toolbar: measure, means or totals, filters, export -----------
+          ## ++ ##
+          div(
+            class = "analysis-controls",
+            div(
+              class = "analysis-toolbar",
+              div(
+                class = "analysis-toolbar-measure",
+                selectInput(ns("analysis_sel_measure"), "Measure", choices = NULL, selected = NULL)
               ),
               ## Means or totals, for both the results table and the figure
               div(
                 id = ns("analysis_table_source_wrap"),
-                selectInput(
-                  ns("analysis_table_source"),
-                  "Estimates",
-                  choices = c("Means (per ha)" = "MEANS", "Totals" = "TOTALS"),
-                  selected = "MEANS"
+                class = "seg-control analysis-toolbar-estimates",
+                shinyWidgets::radioGroupButtons(
+                  inputId   = ns("analysis_table_source"),
+                  status    = "segment",
+                  label     = "Estimates",
+                  choices   = c("Means (per ha)" = "MEANS", "Totals" = "TOTALS"),
+                  selected  = "MEANS",
+                  size      = "sm",
+                  justified = TRUE
+                )
+              ),
+              ## Filter chip: shows the filter state, opens the dimension filters below
+              div(
+                tags$label(class = "form-label", "Filters"),
+                tags$button(
+                  type = "button",
+                  class = "btn filter-chip",
+                  `data-bs-toggle` = "collapse",
+                  `data-bs-target` = paste0("#", ns("analysis_filters_panel")),
+                  `aria-expanded` = "false",
+                  `aria-controls` = ns("analysis_filters_panel"),
+                  bsicons::bs_icon("funnel"),
+                  textOutput(ns("analysis_filter_summary"), inline = TRUE)
+                )
+              ),
+              ## Export menu: table, figure and report downloads in one place
+              div(
+                class = "dropdown analysis-toolbar-export",
+                tags$button(
+                  type = "button",
+                  class = "btn btn-primary btn-icon dropdown-toggle",
+                  `data-bs-toggle` = "dropdown",
+                  `data-bs-auto-close` = "outside",
+                  `data-bs-popper-config` = '{"strategy":"fixed"}',
+                  `aria-expanded` = "false",
+                  "Export"
+                ),
+                div(
+                  class = "dropdown-menu dropdown-menu-end export-menu",
+                  div(
+                    class = "export-section",
+                    div(class = "export-title", "Results table"),
+                    div(
+                      class = "export-row",
+                      actionButton(ns("analysis_table_copy"), "Copy visible table", class = "btn-primary btn-sm"),
+                      downloadButton(ns("analysis_table_download"), "Full table (CSV)", class = "btn-primary btn-sm")
+                    )
+                  ),
+                  div(
+                    class = "export-section",
+                    div(class = "export-title", "Figure (PNG)"),
+                    div(
+                      class = "export-row",
+                      div(
+                        class = "seg-control seg-inline",
+                        style = "width: 140px;",
+                        shinyWidgets::radioGroupButtons(
+                          inputId   = ns("plot_download_theme"),
+                          status    = "segment",
+                          label     = NULL,
+                          choices   = c("Light" = "light", "Dark" = "dark"),
+                          selected  = "light",
+                          size      = "sm",
+                          justified = TRUE
+                        )
+                      ),
+                      downloadButton(ns("analysis_plot_download"), "Download", class = "btn-primary btn-sm")
+                    )
+                  ),
+                  div(
+                    class = "export-section",
+                    div(class = "export-title", "Report"),
+                    div(
+                      class = "export-row",
+                      div(
+                        class = "seg-control seg-inline",
+                        style = "width: 140px;",
+                        shinyWidgets::radioGroupButtons(
+                          inputId   = ns("analysis_report_format"),
+                          status    = "segment",
+                          label     = NULL,
+                          choices   = c("Word" = "docx", "HTML" = "html"),
+                          selected  = "docx",
+                          size      = "sm",
+                          justified = TRUE
+                        )
+                      ),
+                      downloadButton(ns("analysis_report_download"), "Download", class = "btn-primary btn-sm")
+                    )
+                  )
                 )
               )
             ),
-            uiOutput(ns("analysis_extra_filters"))
+            ## Dimension filters, opened from the filter chip
+            div(
+              id = ns("analysis_filters_panel"),
+              class = "collapse",
+              uiOutput(ns("analysis_extra_filters"))
+            )
           ),
 
+          ## ++ ##
+          ## -- Row 1: results table -----------------------------------------
+          ## ++ ##
           card(
             full_screen = TRUE,
             card_header("Results table"),
-            div(
-              style = "display: flex; gap: 0.75rem; align-items: center; margin: 0.75rem 0;",
-              actionButton(
-                ns("analysis_table_copy"),
-                "Copy visible table",
-                class = "btn-primary btn-sm"
-              ),
-              downloadButton(
-                ns("analysis_table_download"),
-                "Download full table (CSV)",
-                class = "btn-primary btn-sm"
-              )
-            ),
             DT::DTOutput(ns("analysis_table"))
           ),
 
-          card(
-            card_header("Figure settings"),
-            layout_column_wrap(
-              width = "180px",
-              fill  = FALSE,
+          ## ++ ##
+          ## -- Row 2: figure options (5/12) and figure (7/12) ---------------
+          ## ++ ##
+          layout_columns(
+            col_widths = breakpoints(sm = 12, lg = c(4, 8)),
+            fill = FALSE,
+            card(
+              card_header("Figure options"),
               selectInput(ns("plot_dim"), "X-axis dimension", choices = NULL),
               selectizeInput(
                 ns("plot_fill"),
@@ -471,89 +560,28 @@ mod_tool_UI <- function(id, i18n, .tr){
                 "Facet by",
                 choices = NULL,
                 options = list(placeholder = "-- none --", allowEmptyOption = TRUE)
-              )
-            ),
-            hr(style = "margin: 0.9rem 0 0.75rem 0;"),
-            layout_column_wrap(
-              width = "180px",
-              fill  = FALSE,
-              div(
-                class = "pt-1",
-                checkboxInput(ns("plot_errbar"), "Error bars", value = TRUE)
               ),
-              div(
-                class = "pt-1",
-                checkboxInput(ns("plot_flip"), "Swap axis", value = FALSE)
-              ),
-              div(
-                class = "pt-1",
-                checkboxInput(ns("plot_wrap_labels"), "Wrap labels", value = TRUE)
-              ),
-              div(
-                class = "pt-1",
+              layout_column_wrap(
+                width = "140px",
+                fill  = FALSE,
+                checkboxInput(ns("plot_errbar"), "Error bars", value = TRUE),
+                checkboxInput(ns("plot_flip"), "Swap axis", value = FALSE),
+                checkboxInput(ns("plot_wrap_labels"), "Wrap labels", value = TRUE),
                 checkboxInput(ns("plot_hide_legend"), "Hide legend", value = FALSE)
-              )
-            ),
-            uiOutput(ns("analysis_plot_guidance"))
-          ),
-
-          ## Figure of the selected estimates (means or totals)
-          card(
-            full_screen  = TRUE,
-            card_header(textOutput(ns("analysis_plot_title"), inline = TRUE)),
-            ## Light or dark PNG, then download (the report always uses light)
-            div(
-              style = "display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.75rem;",
-              div(
-                class = "seg-control seg-inline",
-                style = "width: 160px;",
-                shinyWidgets::radioGroupButtons(
-                  inputId   = ns("plot_download_theme"),
-                  status    = "segment",
-                  label     = NULL,
-                  choices   = c("Light" = "light", "Dark" = "dark"),
-                  selected  = "light",
-                  size      = "sm",
-                  justified = TRUE
-                )
               ),
-              downloadButton(
-                ns("analysis_plot_download"),
-                "Download figure (PNG)",
-                class = "btn-primary btn-sm"
-              )
+              uiOutput(ns("analysis_plot_guidance"))
             ),
-            ## Light and dark versions stacked: CSS shows the dark one on top in dark
-            ## mode, so the theme toggle is instant (no server redraw)
-            div(
-              class = "plot-themed",
-              plotOutput(ns("analysis_plot_light"), height = "400px"),
-              div(class = "plot-themed-dark", plotOutput(ns("analysis_plot_dark"), height = "400px"))
-            )
-          ),
 
-          card(
-            card_header("Export report"),
-            ## Report format switch and download button on one line
-            div(
-              style = "display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;",
+            ## Figure of the selected estimates (means or totals)
+            card(
+              full_screen  = TRUE,
+              card_header(textOutput(ns("analysis_plot_title"), inline = TRUE)),
+              ## Light and dark versions stacked: CSS shows the dark one on top in dark
+              ## mode, so the theme toggle is instant (no server redraw)
               div(
-                class = "seg-control seg-inline",
-                style = "width: 180px;",
-                shinyWidgets::radioGroupButtons(
-                  inputId   = ns("analysis_report_format"),
-                  status    = "segment",
-                  label     = NULL,
-                  choices   = c("Word" = "docx", "HTML" = "html"),
-                  selected  = "docx",
-                  size      = "sm",
-                  justified = TRUE
-                )
-              ),
-              downloadButton(
-                ns("analysis_report_download"),
-                "Download report",
-                class = "btn-primary btn-sm"
+                class = "plot-themed",
+                plotOutput(ns("analysis_plot_light"), height = "400px"),
+                div(class = "plot-themed-dark", plotOutput(ns("analysis_plot_dark"), height = "400px"))
               )
             )
           )
