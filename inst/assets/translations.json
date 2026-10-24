@@ -575,6 +575,16 @@
       "en": "Tropical rainforest, Kaeng Krung National Park, Thailand (Photo: Gael Sola)",
       "fr": "Forêt tropicale humide, parc national de Kaeng Krung, Thaïlande (Photo : Gael Sola)",
       "sp": "Bosque tropical húmedo, Parque Nacional Kaeng Krung, Tailandia (Foto: Gael Sola)"
+    },
+    {
+      "en": "To display the figure, assign these dimensions to Group by or Facet by in Figure options, or filter them to one class:",
+      "fr": "Pour afficher le graphique, attribuez ces dimensions à Group by ou Facet by dans Figure options, ou filtrez-les sur une seule classe :",
+      "sp": "Para mostrar el gráfico, asigne estas dimensiones a Group by o Facet by en Figure options, o fíltrelas a una sola clase:"
+    },
+    {
+      "en": "Figure and report unavailable: set up the figure first.",
+      "fr": "Graphique et rapport indisponibles : configurez d'abord le graphique.",
+      "sp": "Gráfico e informe no disponibles: configure primero el gráfico."
     }
   ]
 }

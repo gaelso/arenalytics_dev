@@ -519,7 +519,14 @@ mod_tool_UI <- function(id, i18n, .tr){
                       ),
                       downloadButton(ns("analysis_report_download"), "Download", class = "btn-primary btn-sm")
                     )
-                  )
+                  ),
+                  ## Shown when the figure cannot be drawn (figure and report unavailable)
+                  shinyjs::hidden(div(
+                    id = ns("export_unavailable_note"),
+                    class = "export-note text-warning",
+                    bsicons::bs_icon("exclamation-triangle"),
+                    " ", i18n$t(.tr$tool_export_unavailable)
+                  ))
                 )
               )
             ),
@@ -568,17 +575,19 @@ mod_tool_UI <- function(id, i18n, .tr){
                 checkboxInput(ns("plot_flip"), "Swap axis", value = FALSE),
                 checkboxInput(ns("plot_wrap_labels"), "Wrap labels", value = TRUE),
                 checkboxInput(ns("plot_hide_legend"), "Hide legend", value = FALSE)
-              ),
-              uiOutput(ns("analysis_plot_guidance"))
+              )
             ),
 
             ## Figure of the selected estimates (means or totals)
             card(
               full_screen  = TRUE,
               card_header(textOutput(ns("analysis_plot_title"), inline = TRUE)),
+              ## What to change in Figure options when the figure cannot be drawn
+              uiOutput(ns("analysis_plot_guidance")),
               ## Light and dark versions stacked: CSS shows the dark one on top in dark
               ## mode, so the theme toggle is instant (no server redraw)
               div(
+                id = ns("analysis_plot_area"),
                 class = "plot-themed",
                 plotOutput(ns("analysis_plot_light"), height = "400px"),
                 div(class = "plot-themed-dark", plotOutput(ns("analysis_plot_dark"), height = "400px"))

@@ -46,6 +46,8 @@
     cfg_psu_remove = "Permissive estimate of standard error.",
     cfg_cm_fast    = "Computes all measures together.",
     cfg_cm_safe    = "Computes measures individually, keeps going when some measures fail.",
+    tool_fig_unavailable = "To display the figure, assign these dimensions to Group by or Facet by in Figure options, or filter them to one class:",
+    tool_export_unavailable = "Figure and report unavailable: set up the figure first.",
 
     ## About UI
     about_title = "About ArenaLytics",

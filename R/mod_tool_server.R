@@ -1,9 +1,11 @@
 #' Tool module server function
 #'
+#' @param i18n shiny.i18n translator, for text built on the server
+#'
 #' @importFrom rlang .data :=
 #'
 #' @noRd
-mod_tool_server <- function(id, rv) {
+mod_tool_server <- function(id, rv, i18n) {
 
   moduleServer(id, function(input, output, session) {
 
@@ -546,21 +548,33 @@ mod_tool_server <- function(id, rv) {
           cat_name   <- meta_row$categoryName[[1]]
           values_raw <- ctx$entity_table[[v]]
 
-          ## Unique non-missing classes, with category labels when available
+          ## Unique non-missing classes, with labels as in the analysis results ("Polish
+          ## results" step): taxonomy scientific names, or category labels keyed on
+          ## code_joint (e.g. "1*3" for district 3 of province 1), in category order
           values <- values_raw |>
             as.character() |>
             stringr::str_subset(".") |>
             unique() |>
             sort()
 
-          cat_tbl <- if (!is.na(cat_name) && nzchar(cat_name)) rv$inputs$data$categories[[cat_name]]
+          has_cat  <- !is.na(cat_name) && nzchar(cat_name)
+          taxo_tbl <- if (has_cat) rv$inputs$data$taxonomies[[cat_name]]
+          cat_tbl  <- if (has_cat) rv$inputs$data$categories[[cat_name]]
 
-          if (!is.null(cat_tbl)) {
-            cat_tbl   <- tibble::as_tibble(cat_tbl)
+          lookup <- if (!is.null(taxo_tbl) && "scientific_name" %in% names(taxo_tbl)) {
+            purrr::set_names(as.character(taxo_tbl$scientific_name), as.character(taxo_tbl$code))
+          } else if (!is.null(cat_tbl)) {
             label_col <- paste0("label_", lang)
             lbl_col   <- if (label_col %in% names(cat_tbl)) label_col else "label"
-            lookup    <- purrr::set_names(as.character(cat_tbl[[lbl_col]]), as.character(cat_tbl$code))
-            values    <- dplyr::coalesce(unname(lookup[values]), values)
+            key_col   <- if ("code_joint" %in% names(cat_tbl)) "code_joint" else "code"
+            cat_tbl   <- tibble::as_tibble(cat_tbl) |>
+              dplyr::arrange(dplyr::across(dplyr::matches("^level_\\d+_code$")), .data$code)
+            purrr::set_names(as.character(cat_tbl[[lbl_col]]), as.character(cat_tbl[[key_col]]))
+          }
+
+          if (!is.null(lookup)) {
+            in_order <- c(intersect(names(lookup), values), setdiff(values, names(lookup)))
+            values   <- dplyr::coalesce(unname(lookup[in_order]), in_order)
           }
 
           tags$div(
@@ -873,31 +887,35 @@ mod_tool_server <- function(id, rv) {
         purrr::discard(\(d) length(filters[[d]]) == 1)
 
       if (length(invalid_dims) == 0) {
-        list(ok = TRUE, message = "All selected dimensions are accounted for in the figure.")
+        list(ok = TRUE, message = NULL, dims = NULL)
       } else {
-        list(
-          ok = FALSE,
-          message = paste0(
-            "To display the figure, assign or reduce these dimensions to one class: ",
-            rv$analysis$dim_meta |>
-              dplyr::filter(.data$name %in% invalid_dims) |>
-              dplyr::pull("label") |>
-              paste(collapse = ", "),
-            "."
-          )
-        )
+        dims_txt <- rv$analysis$dim_meta |>
+          dplyr::filter(.data$name %in% invalid_dims) |>
+          dplyr::pull("label") |>
+          paste(collapse = ", ")
+        list(ok = FALSE, message = paste0(.tr_keys()$tool_fig_unavailable, " ", dims_txt, "."), dims = dims_txt)
       }
     })
 
+    ## Shown in the figure card only when the figure cannot be drawn
     output$analysis_plot_guidance <- renderUI({
       req(rv$analysis$result)
       validation <- plot_validation()
+      req(!validation$ok)
+
+      ## Sentence translated now for the current language, and marked as i18n so later
+      ## language changes translate it in the browser like the rest of the app
+      key  <- .tr_keys()$tool_fig_unavailable
+      lang <- rv$ui$language %||% "en"
+      tr   <- i18n$get_translations()
+      txt  <- if (lang %in% colnames(tr) && key %in% rownames(tr)) tr[key, lang] else key
 
       div(
-        class = if (validation$ok) "text-success" else "text-warning",
+        class = "text-warning",
         style = "font-size: 0.9em; font-style: italic;",
-        if (validation$ok) bsicons::bs_icon("check-circle") else bsicons::bs_icon("exclamation-triangle"),
-        paste0(" ", validation$message)
+        bsicons::bs_icon("exclamation-triangle"), " ",
+        span(class = "i18n", `data-key` = key, txt), " ",
+        paste0(validation$dims, ".")
       )
     })
 
@@ -907,6 +925,8 @@ mod_tool_server <- function(id, rv) {
       ok <- isTRUE(plot_validation()$ok)
       shinyjs::toggleState("analysis_plot_download",   condition = ok)
       shinyjs::toggleState("analysis_report_download",      condition = ok)
+      shinyjs::toggle("export_unavailable_note", condition = !ok)
+      shinyjs::toggle("analysis_plot_area", condition = ok)
     })
 
     ## + Plots ======
@@ -921,7 +941,8 @@ mod_tool_server <- function(id, rv) {
 
     analysis_plots <- reactive({
       req(rv$analysis$result, input$plot_dim, input$analysis_sel_measure)
-      validate(need(plot_validation()$ok, plot_validation()$message))
+      ## Silent: the figure card shows the guidance message instead (analysis_plot_guidance)
+      validate(need(plot_validation()$ok, message = FALSE))
 
       dim_meta  <- rv$analysis$dim_meta
       measure   <- sel_measure()
@@ -1082,6 +1103,8 @@ mod_tool_server <- function(id, rv) {
         )
       },
       content = function(file) {
+        ## Guard: the link is disabled when the figure cannot be drawn
+        if (!isTRUE(plot_validation()$ok)) stop(plot_validation()$message, call. = FALSE)
         plot_theme <- input$plot_download_theme %||% "light"
         ggplot2::ggsave(filename = file, plot = analysis_plots()[[plot_theme]][[input$analysis_table_source %||% "MEANS"]], width = 10, height = 6, dpi = 300)
       }
@@ -1093,7 +1116,7 @@ mod_tool_server <- function(id, rv) {
     ## on.exit() triggers a reactive flush so the WebSocket message is sent.
     report_downloading <- reactiveVal(FALSE)
     observeEvent(report_downloading(), {
-      shinyjs::toggleState("analysis_report_download", condition = !report_downloading())
+      shinyjs::toggleState("analysis_report_download", condition = !report_downloading() && isTRUE(plot_validation()$ok))
     }, ignoreInit = TRUE)
 
     output$analysis_report_download <- downloadHandler(
@@ -1105,6 +1128,8 @@ mod_tool_server <- function(id, rv) {
       contentType = "application/octet-stream",
       content = function(file) {
         req(rv$analysis$result, rv$inputs$data, input$analysis_report_format)
+        ## Guard: the link is disabled when the figure cannot be drawn
+        if (!isTRUE(plot_validation()$ok)) stop(plot_validation()$message, call. = FALSE)
 
         report_downloading(TRUE)
         on.exit(report_downloading(FALSE), add = TRUE)

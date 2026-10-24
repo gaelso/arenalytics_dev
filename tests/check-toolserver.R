@@ -514,13 +514,18 @@
 #   purrr::discard(\(d) length(filter_vals[[d]]) == 1)
 
 # plot_validation <- if (length(invalid_dims) == 0) {
-#   list(ok = TRUE, message = "All selected dimensions are accounted for in the figure.")
+#   list(ok = TRUE, message = NULL)
 # } else {
 #   list(
 #     ok = FALSE,
 #     message = paste0(
-#       "To display the figure, assign or reduce these dimensions to one class: ",
-#       paste(invalid_dims, collapse = ", "), "."
+#       "To display the figure, assign these dimensions to Group by or Facet by in ",
+#       "Figure options, or filter them to one class: ",
+#       rv$analysis$dim_meta |>
+#         dplyr::filter(.data$name %in% invalid_dims) |>
+#         dplyr::pull("label") |>
+#         paste(collapse = ", "),
+#       "."
 #     )
 #   )
 # }

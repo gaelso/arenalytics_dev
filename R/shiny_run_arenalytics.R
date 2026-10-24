@@ -380,7 +380,7 @@ shiny_run_arenalytics <- function(...) {
       # ct       = reactiveValues(),
       analysis = reactiveValues(),
       actions  = reactiveValues(),
-      ui       = reactiveValues(dark_mode = "light")
+      ui       = reactiveValues(dark_mode = "light", language = "en")
     )
 
     ## Light or dark mode from the navbar toggle, for outputs drawn in R (ggplot figures)
@@ -394,13 +394,15 @@ shiny_run_arenalytics <- function(...) {
     ## + Module server functions ####
     mod_home_server("tab_home", rv = rv)
 
-    mod_tool_server("tab_tool", rv = rv)
+    mod_tool_server("tab_tool", rv = rv, i18n = i18n)
 
     mod_about_server("tab_about", rv = rv)
 
     ## + Trans modules events ####
     observeEvent(input$language, {
       shiny.i18n::update_lang(language = input$language)
+      ## For text built on the server (translated at render time, see mod_tool_server)
+      rv$ui$language <- input$language
       ## Footer links, alt texts and <html lang> follow the language
       session$sendCustomMessage("app-locale", list(lang = lang_iso[[input$language]]))
     })
