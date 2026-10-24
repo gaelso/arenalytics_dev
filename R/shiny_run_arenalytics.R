@@ -100,7 +100,8 @@ shiny_run_arenalytics <- function(...) {
 
   ## App title: FAO logo top left (48 px logo, 12 px clear space above and below), not a
   ## link (the FAO logo is not the app logo), then the app title on two lines ({ArenaLytics},
-  ## then the description), a link to the home page without link styling, hidden on small screens
+  ## then the description), a link to the home page without link styling. The description
+  ## hides below 992 px, the name stays (it hides only on the narrowest screens, style.css)
   ## (as function because i18n$t() needs to be inside page_navbar())
   app_title <- function() {
     div(
@@ -108,9 +109,9 @@ shiny_run_arenalytics <- function(...) {
       tags$span(class = "header-logo-block", logo_imgs),
       tags$a(
         href = "./", ## Send back to home page
-        class = "app-title d-none d-lg-flex", ## hidden below 992 px
+        class = "app-title d-flex",
         tags$span(class = "app-name", "{ArenaLytics}"),
-        tags$span(class = "app-subtitle", i18n$t(.tr$app_title))
+        tags$span(class = "app-subtitle d-none d-lg-block", i18n$t(.tr$app_title)) ## hidden below 992 px
       )
     )
   }
@@ -125,6 +126,8 @@ shiny_run_arenalytics <- function(...) {
   ## - link_hover: FAO Design System greys, Gray Dark on light, Gray Medium on dark
   ## - btn_primary, btn_primary_hover: FAO Design System primary button (v3.7.2), white text
   ## - card_header: FAO Design System Primary Light (v3.7.2)
+  ## - seg_text: segmented switch unselected options, FAO Gray Dark on light, Gray Medium on dark
+  ## - heading: titles, FAO Design System text on background (Gray Dark on light, white 85% on dark)
   app_colors <- list(
     light = list(
       primary = "#116bac",
@@ -138,7 +141,9 @@ shiny_run_arenalytics <- function(...) {
       link_hover = "#545454",
       btn_primary = "#116bac",
       btn_primary_hover = "#1688da",
-      card_header = "#e5ecf4"
+      card_header = "#e5ecf4",
+      seg_text = "#545454",
+      heading = "#545454"
     ),
     dark = list(
       primary = "#116bac",
@@ -152,7 +157,9 @@ shiny_run_arenalytics <- function(...) {
       link_hover = "#999999",
       btn_primary = "#1d82f6",
       btn_primary_hover = "#4e9df8",
-      card_header = "#212529"
+      card_header = "#212529",
+      seg_text = "#999999",
+      heading = "rgba(255, 255, 255, 0.85)"
     )
   )
 

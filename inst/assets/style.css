@@ -131,7 +131,9 @@ body > .container-fluid {
 
 /* Segmented switches (shinyWidgets::radioGroupButtons, status "segment", inside
    .seg-control): options on a grey track, the selected one raised on the page
-   background. Bootstrap 5 markup: hidden input.btn-check followed by label.btn */
+   background; unselected options in muted text (--app-seg-text: FAO Gray Dark on
+   light, Gray Medium on dark) so the active option stands out.
+   Bootstrap 5 markup: hidden input.btn-check followed by label.btn */
 .seg-control .btn-group-container-sw {
   gap: 3px;
   padding: 3px;
@@ -144,7 +146,7 @@ body > .container-fluid {
   border-radius: 6px;
   padding: 0.3rem 0.25rem;
   background-color: transparent;
-  color: var(--bs-secondary-color);
+  color: var(--app-seg-text);
   font-weight: 400;
   white-space: nowrap;
 }
@@ -308,6 +310,14 @@ body > .container-fluid {
   text-decoration: none;
 }
 
+/* Narrowest screens: hide the app name too, so the FAO logo and the menu button fit
+   (the description already hides below 992 px; d-flex needs !important to override) */
+@media (max-width: 429.98px) {
+  .app-title {
+    display: none !important;
+  }
+}
+
 /* Small screens: the logo stays top left, the menu button goes to the right */
 .navbar-header {
   display: flex;
@@ -411,6 +421,13 @@ body > .container-fluid {
 .hero-title {
   font-weight: 700;
   font-size: 2rem;
+}
+
+/* Titles: softer than body text (--app-heading: FAO Gray Dark on light, white 85% on dark) */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6,
+.hero-title {
+  color: var(--app-heading);
 }
 
 .hero-subtitle {
@@ -818,4 +835,20 @@ body > .container-fluid {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* Disabled download links: Shiny re-enables a download link (removes its 'disabled'
+   class) when the link becomes visible, e.g. when the Export menu opens, but keeps
+   the 'disabled' attribute set by shinyjs::disable(). Links ignore that attribute,
+   so make it block clicks and look disabled. */
+a.btn[disabled] {
+  pointer-events: none;
+  opacity: var(--bs-btn-disabled-opacity, 0.65);
+}
+
+/* Export menu note when the figure (and so the report) cannot be drawn */
+.export-note {
+  padding: 0.5rem 1rem 0.25rem;
+  font-size: 0.8rem;
+  font-style: italic;
 }
