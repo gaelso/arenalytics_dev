@@ -25,7 +25,7 @@ Arena Survey with Data and Processing Chain
               → Create figures
                 → Generate reports
 
-![How it works: the four-step workflow from Open Foris Arena to ArenaLytics (About page of the dashboard)](img/arenalytics-how-it-works.png)
+![How it works: the four-step workflow from Open Foris Arena to ArenaLytics (About page of the dashboard)](../vignettes/arenalytics-how-it-works.png)
 
 The dashboard can be accessed through a web application or installed locally from its open-source R package, making it suitable for both online and offline environments:
  - Use the online version. Open the hosted dashboard in your web browser: https://openforis-shiny.shinyapps.io/arenalytics/ 

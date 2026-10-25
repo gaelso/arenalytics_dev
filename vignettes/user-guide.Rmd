@@ -40,6 +40,8 @@ ArenaLytics is the last step of a four-step workflow:
    the survey, select the inputs, configure and run the analysis, then review
    and export the results.
 
+![The four-step workflow, as shown on the About page of the dashboard](arenalytics-how-it-works.png)
+
 ## The minimum area unit ZIP file
 
 The minimum area unit (MAU) is the smallest homogeneous land unit in the survey
@@ -101,6 +103,80 @@ The dashboard has three pages:
       report.
 - **About**: workflow, demo dataset, context and technical information on the
   package.
+
+## Making the figure
+
+The figure is a bar chart. It shows one bar for each class of the dimension on
+the x-axis, so each bar must correspond to a single estimate.
+
+When the analysis splits the results by more than one dimension, each
+dimension must find a place in the figure. For example, an analysis of tree
+volume by forest type and tree status (dead or alive) gives one estimate for
+each combination of forest type and status. With forest type on the x-axis,
+each forest type still has two estimates, one for live trees and one for dead
+trees, so the figure cannot be drawn yet. There are three ways to complete it:
+
+- **Group by** tree status: each forest type shows two bars side by side, one
+  for live trees and one for dead trees.
+- **Facet by** tree status: the figure shows two charts, one for live trees
+  and one for dead trees.
+- **Filter** tree status to live trees only, in the dimension filters: each
+  forest type then has a single estimate, and the figure appears at once.
+
+Until every dimension of the analysis is on the x-axis, used to group or
+facet, or filtered to one class, the figure card lists the dimensions to set
+up, and the figure download and the report are unavailable.
+
+## Analysis options
+
+### Lonely primary sampling units
+
+In a stratified design, the standard error of an estimate comes from the
+differences between the primary sampling units (PSUs), such as clusters or
+plots, within each stratum. When a stratum contains only one PSU, a "lonely
+PSU", there is nothing to compare it with, and its contribution to the
+variance cannot be estimated. This happens more often when the results are
+split into many classes, because a stratum can then have a single PSU within a
+class. The estimate itself (mean or total) is not affected; only its standard
+error and confidence interval are.
+
+ArenaLytics computes the estimates with the [survey
+package](https://cran.r-project.org/package=survey) for R, which offers
+several ways to handle lonely PSUs (option `survey.lonely.psu`, see the
+package help page `surveyoptions`). The dashboard offers two of them:
+
+- **Adjust** (default, conservative): the lonely PSU is compared with the
+  overall mean of the population instead of the mean of its own stratum, so
+  its stratum still contributes to the variance. Standard errors tend to be
+  slightly overestimated, and confidence intervals slightly too wide.
+  ArenaLytics applies the same adjustment within each reporting class (option
+  `survey.adjust.domain.lonely`).
+- **Remove** (permissive): the lonely PSU is left out of the variance
+  computation, so its stratum contributes nothing to the variance. Standard
+  errors can be underestimated, and confidence intervals too narrow, for the
+  classes concerned.
+
+Adjust is the safer choice for national reporting, especially with detailed
+cross-tabulations. Remove can be used when strata are well populated and few
+lonely PSUs are expected. When in doubt, run the analysis with both options
+and compare the standard errors. The analysis log reports how many groups had
+a lonely PSU.
+
+### Computation mode
+
+R is fastest with vectorized operations: one instruction is applied to a whole
+set of values at once, instead of one value at a time.
+
+- **Fast**: ArenaLytics estimates all the measures of the entity in a single
+  vectorized computation. This is the quickest option, but if one measure
+  causes an error, for example because of an unexpected value in the data, the
+  whole computation stops and no results are returned.
+- **Safe**: ArenaLytics estimates the measures one by one. This is slower,
+  especially for entities with many measures, but an error on one measure does
+  not stop the others. The analysis keeps the results that could be computed,
+  and the log lists the measures that failed.
+
+Start with Fast, and switch to Safe if the analysis stops with an error.
 
 ## Data pipeline
 
