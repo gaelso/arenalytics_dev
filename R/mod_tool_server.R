@@ -201,8 +201,8 @@ mod_tool_server <- function(id, rv, i18n) {
             label      = NULL,
             choices    = sub_choices,
             individual = TRUE,
-            size       = "sm",
-            checkIcon  = list(yes = bsicons::bs_icon("check-lg"))
+            size       = "sm"#,
+            #checkIcon  = list(yes = bsicons::bs_icon("check-lg"))
           )
         )
       )
