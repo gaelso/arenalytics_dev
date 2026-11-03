@@ -190,8 +190,8 @@ mod_tool_server <- function(id, rv, i18n) {
           label      = NULL,
           choices    = bu_choices,
           individual = TRUE,
-          size       = "sm",
-          checkIcon  = list(yes = bsicons::bs_icon("check-lg"))
+          size       = "sm"#,
+          #checkIcon  = list(yes = bsicons::bs_icon("check-lg"))
         ),
         if (input$analysis_mode != "area" && length(sub_choices) > 0) tagList(
           tags$label(class = "form-label", strong("Sub-unit dimensions")),
@@ -722,18 +722,32 @@ mod_tool_server <- function(id, rv, i18n) {
 
     ## + Dimension filters ======
 
+    ## Classes of each analysis dimension, in category order, with missing values
+    ## (NA) last so they can be kept or filtered out like any class
+    filter_classes <- reactive({
+      req(rv$analysis$result, rv$analysis$dims)
+      purrr::map(purrr::set_names(rv$analysis$dims), \(d) {
+        x    <- rv$analysis$result$MEANS[[d]]
+        vals <- as.character(sort(unique(x)))
+        if (anyNA(x)) c(vals, NA_character_) else vals
+      })
+    })
+
     ## One multi-select per dimension used in the analysis (all dims, regardless
     ## of role). Default = all values selected (no filter applied).
+    ## !!! Option values are class positions ("1", "2"...), not class text: the
+    ## virtual select widget HTML-escapes values ("DBH<10cm" comes back as
+    ## "DBH&lt;10cm"), which would match no row. filter_vals() maps them back. !!!
     output$analysis_extra_filters <- renderUI({
       req(rv$analysis$result, rv$analysis$dim_meta)
 
-      filter_inputs <- purrr::map(rv$analysis$dims, \(d) {
-        vals <- as.character(sort(unique(rv$analysis$result$MEANS[[d]])))
+      filter_inputs <- purrr::imap(filter_classes(), \(vals, d) {
+        labels <- dplyr::case_when(is.na(vals) ~ "(missing)", vals == "" ~ "(empty)", .default = vals)
         shinyWidgets::virtualSelectInput(
           inputId          = ns(paste0("filter_dim__", d)),
           label            = rv$analysis$dim_meta |> dplyr::filter(.data$name == d) |> dplyr::pull("label") |> dplyr::first(),
-          choices          = purrr::set_names(vals),
-          selected         = vals,          ## all selected by default → no filter
+          choices          = purrr::set_names(as.character(seq_along(vals)), labels),
+          selected         = as.character(seq_along(vals)), ## all selected by default -> no filter
           multiple         = TRUE,
           showValueAsTags  = TRUE,
           search           = TRUE,
@@ -758,20 +772,26 @@ mod_tool_server <- function(id, rv, i18n) {
     output$analysis_filter_summary <- renderText({
       req(rv$analysis$result, rv$analysis$dims)
       filters <- filter_vals()
+      classes <- filter_classes()
       purrr::map_chr(rv$analysis$dims, \(d) {
-        n_all <- length(unique(rv$analysis$result$MEANS[[d]]))
-        n_sel <- length(filters[[d]] %||% seq_len(n_all))
+        n_all <- length(classes[[d]])
+        n_sel <- length(filters[[d]] %||% classes[[d]])
         label <- rv$analysis$dim_meta |> dplyr::filter(.data$name == d) |> dplyr::pull("label") |> dplyr::first()
         paste0(label, ": ", if (n_sel == n_all) paste("all", n_all) else paste(n_sel, "of", n_all))
       }) |>
         paste(collapse = " \u00b7 ")
     })
 
-    ## Current filter values for all dims, named by dim
+    ## Current filter values for all dims, named by dim: the selected positions mapped
+    ## back to the class values (NULL until the filter exists)
     filter_vals <- reactive({
+      classes <- filter_classes()
       purrr::map(
         purrr::set_names(rv$analysis$dims %||% character(0)),
-        \(d) input[[paste0("filter_dim__", d)]]
+        \(d) {
+          pos <- input[[paste0("filter_dim__", d)]]
+          if (is.null(pos)) NULL else classes[[d]][as.integer(pos)]
+        }
       )
     })
 
@@ -1206,9 +1226,9 @@ mod_tool_server <- function(id, rv, i18n) {
         dim_labels <- purrr::set_names(rv$analysis$dim_meta$label, rv$analysis$dim_meta$name)
         active_filters <- filter_vals() |>
           purrr::imap(\(selected_vals, d) {
-            all_vals <- sort(unique(rv$analysis$result$MEANS[[d]]))
+            all_vals <- filter_classes()[[d]]
             if (length(selected_vals) == 0 || setequal(selected_vals, all_vals)) return(NULL)
-            paste0(unname(dim_labels[d]), ": ", paste(selected_vals, collapse = ", "))
+            paste0(unname(dim_labels[d]), ": ", paste(dplyr::coalesce(selected_vals, "(missing)"), collapse = ", "))
           }) |>
           purrr::compact()
 
