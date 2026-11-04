@@ -592,17 +592,20 @@ mod_tool_server <- function(id, rv, i18n) {
           tags$div(
             style = "margin-bottom: 0.85rem;",
             tags$div(
-              tags$strong(meta_row$label[[1]]),
-              if (any(!is.na(values_raw) & values_raw == "")) tags$span(
-                " Empty class present",
-                class = "badge text-bg-warning",
-                style = "margin-left: 0.5rem;"
-              ),
-              if (any(is.na(values_raw))) tags$span(
-                " NA present",
-                class = "badge text-bg-danger",
-                style = "margin-left: 0.5rem;"
-              )
+              tags$strong(meta_row$label[[1]])#,
+              ## !!! TMP !!! Empty / NA flags hidden: these values mostly come from
+              ## inaccessible plots or plots without items, not from data errors.
+              ## Bring back once they can be told apart from real issues.
+              # if (any(!is.na(values_raw) & values_raw == "")) tags$span(
+              #   " Empty class present",
+              #   class = "badge text-bg-warning",
+              #   style = "margin-left: 0.5rem;"
+              # ),
+              # if (any(is.na(values_raw))) tags$span(
+              #   " NA present",
+              #   class = "badge text-bg-danger",
+              #   style = "margin-left: 0.5rem;"
+              # )
             ),
             if (length(values) > 0) {
               tags$div(
