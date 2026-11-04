@@ -5,6 +5,7 @@
 ^\.claude$
 ^\.vscode$
 ^app\.R$
+^manifest\.json$
 ^rsconnect$
 ^data-raw$
 ^_pkgdown\.yml$
