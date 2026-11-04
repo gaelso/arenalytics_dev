@@ -758,9 +758,11 @@ mod_tool_server <- function(id, rv, i18n) {
 
       if (length(filter_inputs) == 0) return(NULL)
 
+      ## unname(): imap() names the list by dim, and named arguments would become
+      ## HTML attributes of the grid instead of its children
       div(
         class = "analysis-filters",
-        layout_column_wrap(width = "180px", fill = FALSE, !!!filter_inputs)
+        layout_column_wrap(width = "180px", fill = FALSE, !!!unname(filter_inputs))
       )
     })
 
