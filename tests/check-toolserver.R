@@ -263,6 +263,7 @@
 # })
 
 # rv$analysis$dims   <- rv$analysis$dims_sel
+# rv$analysis$result_meta <- rv$analysis$dim_meta ## analysis copy of the entity metadata
 # rv$analysis$entity <- input$analysis_sel_entity
 # rv$analysis$mode   <- input$analysis_mode
 
@@ -417,7 +418,7 @@
 
 # ## + Plot selectors ======
 
-# dim_meta_sel <- rv$analysis$dim_meta |> dplyr::filter(.data$name %in% rv$analysis$dims)
+# dim_meta_sel <- rv$analysis$result_meta |> dplyr::filter(.data$name %in% rv$analysis$dims)
 # dim_choices  <- purrr::set_names(dim_meta_sel$name, dim_meta_sel$label)
 # meas_choices <- purrr::set_names(rv$analysis$measures_meta$name, rv$analysis$measures_meta$label)
 
@@ -487,7 +488,7 @@
 
 # ## Column labels, first match wins: dimensions, fixed columns, selected measure
 # ## !!! ERROR HERE IF 2 VARS HAVE SAME NAME AND ONE IS EXTENDED !!!
-# dim_meta <- rv$analysis$dim_meta |> dplyr::filter(.data$report_type == "dimension")
+# dim_meta <- rv$analysis$result_meta |> dplyr::filter(.data$report_type == "dimension")
 # col_labels <- c(
 #   purrr::set_names(dim_meta$label, dim_meta$name),
 #   area            = "Area",
@@ -521,7 +522,7 @@
 #     message = paste0(
 #       "To display the figure, assign these dimensions to Group by or Facet by in ",
 #       "Figure options, or filter them to one class: ",
-#       rv$analysis$dim_meta |>
+#       rv$analysis$result_meta |>
 #         dplyr::filter(.data$name %in% invalid_dims) |>
 #         dplyr::pull("label") |>
 #         paste(collapse = ", "),
@@ -536,7 +537,7 @@
 # if (!plot_validation$ok) stop(plot_validation$message)
 
 # ## Bar plots of MEANS and TOTALS
-# dim_meta  <- rv$analysis$dim_meta
+# dim_meta  <- rv$analysis$result_meta
 # measure   <- sel_measure
 # x_dim     <- input$plot_dim
 # fill_col  <- input$plot_fill
@@ -718,13 +719,13 @@
 #   rv$analysis$entity
 # )
 
-# report_dims <- rv$analysis$dim_meta |>
+# report_dims <- rv$analysis$result_meta |>
 #   dplyr::filter(.data$report_type == "dimension", .data$name %in% rv$analysis$dims)
 # base_dims <- report_dims |> dplyr::filter(.data$dimension_baseunit) |> dplyr::pull("label")
 # sub_dims  <- report_dims |> dplyr::filter(!.data$dimension_baseunit) |> dplyr::pull("label")
 
 # ## Filters that exclude at least one class
-# dim_labels <- purrr::set_names(rv$analysis$dim_meta$label, rv$analysis$dim_meta$name)
+# dim_labels <- purrr::set_names(rv$analysis$result_meta$label, rv$analysis$result_meta$name)
 # active_filters <- filter_vals |>
 #   purrr::imap(\(selected_vals, d) {
 #     all_vals <- sort(unique(rv$analysis$result$MEANS[[d]]))

@@ -193,7 +193,12 @@ mod_tool_server <- function(id, rv, i18n) {
           size       = "sm"#,
           #checkIcon  = list(yes = bsicons::bs_icon("check-lg"))
         ),
-        if (input$analysis_mode != "area" && length(sub_choices) > 0) tagList(
+        ## Always drawn, hidden when the entity has no sub-unit dimension (or in area
+        ## mode): each entity change then redraws it with nothing selected, which
+        ## resets input$analysis_sub_dims. A widget that is not drawn keeps its last
+        ## value on the server (e.g. the previous entity's sub-unit dimensions).
+        div(
+          style = if (input$analysis_mode == "area" || length(sub_choices) == 0) "display: none;",
           tags$label(class = "form-label", strong("Sub-unit dimensions")),
           shinyWidgets::checkboxGroupButtons(
             inputId    = ns("analysis_sub_dims"),
@@ -210,13 +215,16 @@ mod_tool_server <- function(id, rv, i18n) {
 
     ## ++ Enable Analysis button UI ------
 
-    ## Enable run button when at least one dim is selected
+    ## Enable run button when at least one dim is selected. Only dimensions of the
+    ## current entity are kept (guard against values left from a previous entity)
     observe({
+      entity_dims <- rv$analysis$dim_meta$name %||% character(0)
       rv$analysis$dims_sel <- if (identical(input$analysis_mode, "area")) {
         input$analysis_bu_dims
       } else {
         c(input$analysis_bu_dims, input$analysis_sub_dims)
-      }
+      } |>
+        intersect(entity_dims)
       shinyjs::toggleState("btn_run_analysis", condition = isTruthy(rv$analysis$dims_sel))
     })
 
@@ -380,9 +388,13 @@ mod_tool_server <- function(id, rv, i18n) {
           dplyr::relocate(dplyr::any_of(c("item_count", "base_unit_count", "cluster_count")), .after = dplyr::last_col())
       })
 
-      rv$analysis$dims   <- rv$analysis$dims_sel
-      rv$analysis$entity <- input$analysis_sel_entity
-      rv$analysis$mode   <- input$analysis_mode
+      ## The analysis keeps its own copy of the entity metadata: the panel outputs read
+      ## result_meta, so selecting another entity in the sidebar (which rewrites
+      ## dim_meta) does not change the results on screen until the next run
+      rv$analysis$dims        <- rv$analysis$dims_sel
+      rv$analysis$entity      <- input$analysis_sel_entity
+      rv$analysis$mode        <- input$analysis_mode
+      rv$analysis$result_meta <- rv$analysis$dim_meta
 
       shinyjs::enable("btn_analysis_results")
     })
@@ -671,8 +683,8 @@ mod_tool_server <- function(id, rv, i18n) {
 
     ## "Number of bamboos by Forest Status and Land Use"
     output$analysis_heading <- renderText({
-      req(rv$analysis$dims, rv$analysis$dim_meta)
-      dim_labels <- rv$analysis$dim_meta |>
+      req(rv$analysis$dims, rv$analysis$result_meta)
+      dim_labels <- rv$analysis$result_meta |>
         dplyr::filter(.data$name %in% rv$analysis$dims) |>
         dplyr::pull("label")
       dims_txt <- if (length(dim_labels) > 1) {
@@ -687,9 +699,9 @@ mod_tool_server <- function(id, rv, i18n) {
 
     ## Updated when a new result arrives
     observeEvent(rv$analysis$result, {
-      req(rv$analysis$result, rv$analysis$dim_meta, rv$analysis$measures_meta)
+      req(rv$analysis$result, rv$analysis$result_meta, rv$analysis$measures_meta)
 
-      dim_meta    <- rv$analysis$dim_meta |> dplyr::filter(.data$name %in% rv$analysis$dims)
+      dim_meta    <- rv$analysis$result_meta |> dplyr::filter(.data$name %in% rv$analysis$dims)
       dim_choices <- purrr::set_names(dim_meta$name, dim_meta$label)
       meas_choices <- purrr::set_names(rv$analysis$measures_meta$name, rv$analysis$measures_meta$label)
 
@@ -739,13 +751,13 @@ mod_tool_server <- function(id, rv, i18n) {
     ## virtual select widget HTML-escapes values ("DBH<10cm" comes back as
     ## "DBH&lt;10cm"), which would match no row. filter_vals() maps them back. !!!
     output$analysis_extra_filters <- renderUI({
-      req(rv$analysis$result, rv$analysis$dim_meta)
+      req(rv$analysis$result, rv$analysis$result_meta)
 
       filter_inputs <- purrr::imap(filter_classes(), \(vals, d) {
         labels <- dplyr::case_when(is.na(vals) ~ "(missing)", vals == "" ~ "(empty)", .default = vals)
         shinyWidgets::virtualSelectInput(
           inputId          = ns(paste0("filter_dim__", d)),
-          label            = rv$analysis$dim_meta |> dplyr::filter(.data$name == d) |> dplyr::pull("label") |> dplyr::first(),
+          label            = rv$analysis$result_meta |> dplyr::filter(.data$name == d) |> dplyr::pull("label") |> dplyr::first(),
           choices          = purrr::set_names(as.character(seq_along(vals)), labels),
           selected         = as.character(seq_along(vals)), ## all selected by default -> no filter
           multiple         = TRUE,
@@ -778,7 +790,7 @@ mod_tool_server <- function(id, rv, i18n) {
       purrr::map_chr(rv$analysis$dims, \(d) {
         n_all <- length(classes[[d]])
         n_sel <- length(filters[[d]] %||% classes[[d]])
-        label <- rv$analysis$dim_meta |> dplyr::filter(.data$name == d) |> dplyr::pull("label") |> dplyr::first()
+        label <- rv$analysis$result_meta |> dplyr::filter(.data$name == d) |> dplyr::pull("label") |> dplyr::first()
         paste0(label, ": ", if (n_sel == n_all) paste("all", n_all) else paste(n_sel, "of", n_all))
       }) |>
         paste(collapse = " \u00b7 ")
@@ -813,7 +825,7 @@ mod_tool_server <- function(id, rv, i18n) {
 
     ## Dims, other columns, selected measure columns then counts, with labels as column names
     analysis_table <- reactive({
-      req(rv$analysis$result, rv$analysis$dim_meta, input$analysis_table_source, input$analysis_sel_measure)
+      req(rv$analysis$result, rv$analysis$result_meta, input$analysis_table_source, input$analysis_sel_measure)
 
       df            <- analysis_filtered()[[input$analysis_table_source]]
       measure       <- sel_measure()
@@ -836,7 +848,7 @@ mod_tool_server <- function(id, rv, i18n) {
 
       ## Column labels, first match wins: dimensions, fixed columns, selected measure
       ## !!! ERROR HERE IF 2 VARS HAVE SAME NAME AND ONE IS EXTENDED !!!
-      dim_meta <- rv$analysis$dim_meta |> dplyr::filter(.data$report_type == "dimension")
+      dim_meta <- rv$analysis$result_meta |> dplyr::filter(.data$report_type == "dimension")
       col_labels <- c(
         purrr::set_names(dim_meta$label, dim_meta$name),
         area            = "Area",
@@ -911,7 +923,7 @@ mod_tool_server <- function(id, rv, i18n) {
       if (length(invalid_dims) == 0) {
         list(ok = TRUE, message = NULL, dims = NULL)
       } else {
-        dims_txt <- rv$analysis$dim_meta |>
+        dims_txt <- rv$analysis$result_meta |>
           dplyr::filter(.data$name %in% invalid_dims) |>
           dplyr::pull("label") |>
           paste(collapse = ", ")
@@ -966,7 +978,7 @@ mod_tool_server <- function(id, rv, i18n) {
       ## Silent: the figure card shows the guidance message instead (analysis_plot_guidance)
       validate(need(plot_validation()$ok, message = FALSE))
 
-      dim_meta  <- rv$analysis$dim_meta
+      dim_meta  <- rv$analysis$result_meta
       measure   <- sel_measure()
       x_dim     <- input$plot_dim
       fill_col  <- input$plot_fill
@@ -1219,13 +1231,13 @@ mod_tool_server <- function(id, rv, i18n) {
           rv$analysis$entity
         )
 
-        report_dims <- rv$analysis$dim_meta |>
+        report_dims <- rv$analysis$result_meta |>
           dplyr::filter(.data$report_type == "dimension", .data$name %in% rv$analysis$dims)
         base_dims <- report_dims |> dplyr::filter(.data$dimension_baseunit) |> dplyr::pull("label")
         sub_dims  <- report_dims |> dplyr::filter(!.data$dimension_baseunit) |> dplyr::pull("label")
 
         ## Filters that exclude at least one class
-        dim_labels <- purrr::set_names(rv$analysis$dim_meta$label, rv$analysis$dim_meta$name)
+        dim_labels <- purrr::set_names(rv$analysis$result_meta$label, rv$analysis$result_meta$name)
         active_filters <- filter_vals() |>
           purrr::imap(\(selected_vals, d) {
             all_vals <- filter_classes()[[d]]
