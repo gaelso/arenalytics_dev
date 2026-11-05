@@ -585,6 +585,31 @@
       "en": "Figure and report unavailable: set up the figure first.",
       "fr": "Graphique et rapport indisponibles : configurez d'abord le graphique.",
       "sp": "Gráfico e informe no disponibles: configure primero el gráfico."
+    },
+    {
+      "en": "Reset Dashboard",
+      "fr": "Réinitialiser le tableau de bord",
+      "sp": "Restablecer el panel"
+    },
+    {
+      "en": "Reset the dashboard?",
+      "fr": "Réinitialiser le tableau de bord ?",
+      "sp": "¿Restablecer el panel?"
+    },
+    {
+      "en": "All loaded data, analysis options and results will be erased.",
+      "fr": "Toutes les données chargées, les options d'analyse et les résultats seront effacés.",
+      "sp": "Se borrarán todos los datos cargados, las opciones de análisis y los resultados."
+    },
+    {
+      "en": "Cancel",
+      "fr": "Annuler",
+      "sp": "Cancelar"
+    },
+    {
+      "en": "Confirm",
+      "fr": "Confirmer",
+      "sp": "Confirmar"
     }
   ]
 }

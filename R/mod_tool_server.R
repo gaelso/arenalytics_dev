@@ -33,6 +33,7 @@ mod_tool_server <- function(id, rv, i18n) {
       shinyjs::toggle("msg_file_ok",    condition = rv$inputs$checkzip$all_ok)
       shinyjs::toggle("msg_file_error", condition = !rv$inputs$checkzip$all_ok)
       shinyjs::toggleState("btn_read_data", condition = rv$inputs$checkzip$all_ok)
+      shinyjs::enable("btn_reset") ## something to reset, even if the file has errors
 
     })
 
@@ -110,6 +111,63 @@ mod_tool_server <- function(id, rv, i18n) {
       shinyjs::show("panel_insights")
     })
 
+    ## ++ Reset dashboard (after confirmation) ------
+
+    observeEvent(input$btn_reset, {
+      ## Dialog text in the current language (built on the server)
+      tr   <- i18n$get_translations()
+      lang <- rv$ui$language %||% "en"
+      txt  <- function(key) if (lang %in% colnames(tr) && key %in% rownames(tr)) tr[key, lang] else key
+
+      shinyWidgets::ask_confirmation(
+        inputId    = "confirm_reset",
+        title      = txt(.tr_keys()$reset_title),
+        text       = txt(.tr_keys()$reset_text),
+        type       = "warning",
+        btn_labels = c(txt(.tr_keys()$reset_cancel), txt(.tr_keys()$reset_confirm)),
+        focusCancel = TRUE ## Enter cancels: erasing needs an explicit click on Confirm
+      ) ## button colours and sizes: .swal2-* rules in style.css
+    })
+
+    observeEvent(input$confirm_reset, {
+      req(isTRUE(input$confirm_reset))
+
+      ## Data, insights and analysis state: outputs drawn from them disappear
+      ## (entity selector, dimension chips, insights, results)
+      purrr::walk(c("inputs", "insights", "analysis"), \(grp) {
+        purrr::walk(names(rv[[grp]]), \(n) rv[[grp]][[n]] <- NULL)
+      })
+
+      ## Step 1: file input and messages back to the start
+      shinyjs::reset("load_zip")
+      shinyjs::show("msg_no_file")
+      shinyjs::hide("msg_file_ok")
+      shinyjs::hide("msg_file_error")
+
+      ## Steps 2 and 3: analysis type and options back to their defaults
+      shinyWidgets::updateRadioGroupButtons(session, "analysis_mode",         selected = "other")
+      shinyWidgets::updateRadioGroupButtons(session, "analysis_lonely_psu",   selected = "adjust")
+      shinyWidgets::updateRadioGroupButtons(session, "analysis_compute_mode", selected = "fast")
+      shinyWidgets::updateRadioGroupButtons(session, "analysis_p_value",      selected = "0.95")
+
+      purrr::walk(c("btn_read_data", "btn_reset", "btn_data_insights", "btn_run_analysis", "btn_analysis_results"), shinyjs::disable)
+
+      ## Panels: initial messages, progress and results cleared
+      shinyjs::show("panel_insight_msg")
+      shinyjs::hide("panel_insight_progress")
+      shinyjs::hide("panel_insights")
+      shinyjs::html("readdata_console", "")
+      shinyWidgets::updateProgressBar(session = session, id = "readdata_progress", value = 0)
+
+      shinyjs::show("analysis_no_result")
+      shinyjs::hide("analysis_progress")
+      shinyjs::hide("analysis_results")
+      shinyjs::html("analysis_console", "")
+      shinyWidgets::updateProgressBar(session = session, id = "analysis_progress_bar", value = 0)
+
+      message(sprintf("[%s] Dashboard reset.", format(Sys.time(), "%Y-%m-%d %H:%M:%S")))
+    })
+
     ## + ACC2: Select inputs (entities, dimensions) ======
 
     observe({
@@ -152,9 +210,10 @@ mod_tool_server <- function(id, rv, i18n) {
 
     ## ++ Prepare dimensions for selected entity ------
 
-    ## Recomputed each time entity changes
-    observeEvent(input$analysis_sel_entity, {
-      req(rv$inputs$data)
+    ## Recomputed each time entity changes, or new data is read (the entity input
+    ## keeps its value when the new file has an entity of the same name)
+    observeEvent(list(input$analysis_sel_entity, rv$inputs$data), {
+      req(rv$inputs$data, input$analysis_sel_entity)
 
       rv$analysis$dim_meta <- rv$inputs$var_meta[[input$analysis_sel_entity]]
 
@@ -870,6 +929,9 @@ mod_tool_server <- function(id, rv, i18n) {
     })
 
     output$analysis_table <- DT::renderDT({
+      ## Redraw when the results panel is shown: a new table sent while the panel is
+      ## hidden (during the run) is not drawn by DT, which kept the previous table
+      input$btn_analysis_results
       table_df <- analysis_table()
 
       numeric_cols <- names(purrr::keep(table_df, is.numeric))

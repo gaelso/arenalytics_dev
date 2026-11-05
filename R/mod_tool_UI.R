@@ -79,8 +79,9 @@ mod_tool_UI <- function(id, i18n, .tr){
       style = "font-style: italic;"
     )),
 
-    ## ACTION BUTTON
+    ## ACTION BUTTONS: read the data, or reset the whole dashboard (after confirmation)
     div(
+      style = "margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem;",
       shinyjs::disabled(
         actionButton(
           inputId = ns("btn_read_data"),
@@ -88,7 +89,14 @@ mod_tool_UI <- function(id, i18n, .tr){
           class = "btn-primary"
         )
       ),
-      style = "margin-top: 1rem;"
+      ## Enabled once a file is uploaded, disabled again after a reset
+      shinyjs::disabled(
+        actionButton(
+          inputId = ns("btn_reset"),
+          label = i18n$t(.tr$ac1_reset),
+          class = "btn-outline-warning" ## FAO orange outline: erases all data and results
+        )
+      )
     )
 
   )

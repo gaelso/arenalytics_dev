@@ -231,6 +231,22 @@ body > .container-fluid {
   border-color: var(--app-btn-primary-hover);
 }
 
+/* Warning outline button (e.g. Reset Dashboard): FAO orange border and text, filled
+   orange on hover. Set here because Shiny's default button class (btn-default)
+   would otherwise give it the green border */
+.btn.btn-outline-warning {
+  --bs-btn-color: var(--app-warning);
+  --bs-btn-border-color: var(--app-warning);
+  --bs-btn-bg: transparent;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--app-warning);
+  --bs-btn-hover-border-color: var(--app-warning);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--app-warning);
+  --bs-btn-active-border-color: var(--app-warning);
+  border-color: var(--app-warning);
+}
+
 /* Button with a chevron after the label (FAO Design System .btn-icon) */
 .btn-icon .bi {
   display: inline-block;
@@ -852,3 +868,55 @@ a.btn[disabled] {
   font-size: 0.8rem;
   font-style: italic;
 }
+
+/* Specific CSS - Dialogs (shinyWidgets SweetAlert2: reset confirmation, analysis
+   error) ------
+   Buttons with the app button metrics: confirm in FAO red (danger), cancel in FAO
+   Primary Light. The dialog follows the light/dark theme. */
+.swal2-popup {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  border-radius: 0.5rem;
+}
+.swal2-popup .swal2-title {
+  color: var(--app-heading);
+}
+.swal2-popup .swal2-html-container {
+  color: var(--bs-body-color);
+}
+.swal2-popup .swal2-styled {
+  margin: 0.25rem;
+  padding: 0.375rem 0.5rem; /* app .btn: 6px 8px */
+  border: 1px solid transparent;
+  border-radius: var(--bs-border-radius, 0.375rem);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.5;
+  box-shadow: none;
+}
+.swal2-popup .swal2-styled.swal2-confirm {
+  background-color: var(--app-danger);
+  border-color: var(--app-danger);
+  color: #fff;
+}
+.swal2-popup .swal2-styled.swal2-confirm:hover {
+  background-color: color-mix(in srgb, var(--app-danger) 85%, black);
+  background-image: none;
+}
+.swal2-popup .swal2-styled.swal2-cancel {
+  background-color: var(--app-card-header);
+  border-color: var(--bs-border-color);
+  color: var(--app-heading);
+}
+.swal2-popup .swal2-styled.swal2-cancel:hover {
+  background-color: color-mix(in srgb, var(--app-card-header) 90%, var(--bs-emphasis-color));
+  background-image: none;
+}
+.swal2-popup .swal2-styled:focus,
+.swal2-popup .swal2-styled:focus-visible {
+  outline: 2px solid var(--app-link);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
